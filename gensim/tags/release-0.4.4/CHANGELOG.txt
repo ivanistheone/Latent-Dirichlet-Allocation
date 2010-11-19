@@ -1,0 +1,31 @@
+Changes
+=======
+
+0.4.4
+
+* added missing test files to MANIFEST.in
+
+0.4.3
+
+* documentation changes
+* added gensim reference to Wiki articles (SVD, LSI, LDA, TFIDF, ...)
+
+0.4.2
+
+* finally, a tutorial!
+* similarity queries got their own package
+
+0.4.1
+
+* pdf documentation
+* removed dependency on python2.5 (theoretically, gensim now runs on 2.6 and 2.7 as well).
+
+0.4.0
+
+* support for ``python setup.py test``
+* fixing package metadata
+* documentation clean-up
+
+0.2.0
+
+* First version

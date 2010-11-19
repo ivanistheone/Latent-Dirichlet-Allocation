@@ -1,0 +1,224 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>matutils – Math utils &mdash; gensim documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.7.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="gensim documentation" href="index.html" />
+    <link rel="up" title="API Reference" href="apiref.html" />
+    <link rel="next" title="corpora.bleicorpus – Corpus in Blei’s LDA-C format" href="corpora/bleicorpus.html" />
+    <link rel="prev" title="utils – Various utility functions" href="utils.html" /> 
+  </head>
+  <body>
+
+<!--
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="index.html"><img src="_static/logo.png" border="0" alt="gensim logo"/></a>
+</div>
+--!>
+
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="corpora/bleicorpus.html" title="corpora.bleicorpus – Corpus in Blei’s LDA-C format"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils – Various utility functions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Gensim home</a>|&nbsp;</li>
+        <li><a href="apiref.html">API reference</a>|&nbsp;</li>
+       <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+
+          <li><a href="apiref.html" accesskey="U">API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">utils</span></tt> &#8211; Various utility functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="corpora/bleicorpus.html"
+                        title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">corpora.bleicorpus</span></tt> &#8211; Corpus in Blei&#8217;s LDA-C format</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-gensim.matutils">
+<span id="matutils-math-utils"></span><h1><tt class="xref py py-mod docutils literal"><span class="pre">matutils</span></tt> &#8211; Math utils<a class="headerlink" href="#module-gensim.matutils" title="Permalink to this headline">¶</a></h1>
+<p>This module contains math helper functions.</p>
+<dl class="class">
+<dt id="gensim.matutils.Dense2Corpus">
+<em class="property">class </em><tt class="descclassname">gensim.matutils.</tt><tt class="descname">Dense2Corpus</tt><big>(</big><em>dense</em>, <em>documents_columns=True</em><big>)</big><a class="headerlink" href="#gensim.matutils.Dense2Corpus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Treat dense numpy array as a sparse gensim corpus.</p>
+<p>No data copy is made (changes to the underlying matrix imply changes in the 
+corpus).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gensim.matutils.MmReader">
+<em class="property">class </em><tt class="descclassname">gensim.matutils.</tt><tt class="descname">MmReader</tt><big>(</big><em>input</em>, <em>transposed=True</em><big>)</big><a class="headerlink" href="#gensim.matutils.MmReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap a term-document matrix on disk (in matrix-market format), and present it 
+as an object which supports iteration over the rows (~documents).</p>
+<p>Note that the file is read into memory one document at a time, not the whole 
+matrix at once (unlike scipy.io.mmread). This allows us to process corpora 
+which are larger than the available RAM.</p>
+<p>Initialize the matrix reader.</p>
+<p>The <cite>input</cite> refers to a file on local filesystem, which is expected to 
+be in the sparse (coordinate) Matrix Market format. Documents are assumed 
+to be rows of the matrix (and document features are columns).</p>
+<p><cite>input</cite> is either a string (file path) or a file-like object that supports
+<cite>seek(0)</cite> (e.g. gzip.GzipFile, bz2.BZ2File).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="gensim.matutils.MmWriter">
+<em class="property">class </em><tt class="descclassname">gensim.matutils.</tt><tt class="descname">MmWriter</tt><big>(</big><em>fname</em><big>)</big><a class="headerlink" href="#gensim.matutils.MmWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store corpus in Matrix Market format.</p>
+<dl class="staticmethod">
+<dt id="gensim.matutils.MmWriter.writeCorpus">
+<em class="property">static </em><tt class="descname">writeCorpus</tt><big>(</big><em>fname</em>, <em>corpus</em>, <em>progressCnt=1000</em><big>)</big><a class="headerlink" href="#gensim.matutils.MmWriter.writeCorpus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the vector space representation of an entire corpus to disk.</p>
+<p>Note that the documents are processed one at a time, so the whole corpus 
+is allowed to be larger than the available RAM.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="gensim.matutils.MmWriter.writeVector">
+<tt class="descname">writeVector</tt><big>(</big><em>docNo</em>, <em>vector</em><big>)</big><a class="headerlink" href="#gensim.matutils.MmWriter.writeVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a single sparse vector to the file.</p>
+<p>Sparse vector is any iterable yielding (field id, field value) pairs.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="gensim.matutils.Sparse2Corpus">
+<em class="property">class </em><tt class="descclassname">gensim.matutils.</tt><tt class="descname">Sparse2Corpus</tt><big>(</big><em>sparse</em>, <em>documents_columns=True</em><big>)</big><a class="headerlink" href="#gensim.matutils.Sparse2Corpus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a matrix in scipy.sparse format into a streaming gensim corpus.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.corpus2csc">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">corpus2csc</tt><big>(</big><em>corpus</em>, <em>num_terms</em>, <em>dtype=&lt;type 'numpy.float64'&gt;</em><big>)</big><a class="headerlink" href="#gensim.matutils.corpus2csc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert corpus into a sparse matrix, in scipy.sparse.csc_matrix format, 
+with documents as columns.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.corpus2dense">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">corpus2dense</tt><big>(</big><em>corpus</em>, <em>num_terms</em><big>)</big><a class="headerlink" href="#gensim.matutils.corpus2dense" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert corpus into a dense numpy array (documents will be columns).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.full2sparse">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">full2sparse</tt><big>(</big><em>vec</em>, <em>eps=1.0000000000000001e-09</em><big>)</big><a class="headerlink" href="#gensim.matutils.full2sparse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a dense numpy array into the sparse corpus format (sequence of 2-tuples).</p>
+<p>Values of magnitude &lt; <cite>eps</cite> are treated as zero (ignored).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.pad">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">pad</tt><big>(</big><em>mat</em>, <em>padRow</em>, <em>padCol</em><big>)</big><a class="headerlink" href="#gensim.matutils.pad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add additional rows/columns to a numpy.matrix <cite>mat</cite>. The new rows/columns 
+will be initialized with zeros.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.sparse2full">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">sparse2full</tt><big>(</big><em>doc</em>, <em>length</em><big>)</big><a class="headerlink" href="#gensim.matutils.sparse2full" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a document in sparse corpus format (sequence of 2-tuples) into a dense 
+numpy array (of size <cite>length</cite>).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="gensim.matutils.unitVec">
+<tt class="descclassname">gensim.matutils.</tt><tt class="descname">unitVec</tt><big>(</big><em>vec</em><big>)</big><a class="headerlink" href="#gensim.matutils.unitVec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scale a vector to unit length. The only exception is the zero vector, which
+is returned back unchanged.</p>
+<p>If the input is sparse (list of 2-tuples), output will also be sparse. Otherwise,
+output will be a numpy array.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="corpora/bleicorpus.html" title="corpora.bleicorpus – Corpus in Blei’s LDA-C format"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="utils – Various utility functions"
+             >previous</a> |</li>
+        <li><a href="index.html">Gensim home</a>|&nbsp;</li>
+        <li><a href="apiref.html">API reference</a>|&nbsp;</li>
+       <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+
+          <li><a href="apiref.html" >API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, Radim Řehůřek &lt;radimrehurek(at)seznam.cz&gt;.
+      Last updated on Nov 06, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.4.
+    </div>
+  </body>
+</html>

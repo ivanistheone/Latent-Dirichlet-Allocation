@@ -1,0 +1,49 @@
+Changes
+=======
+
+0.5.0
+
+* finished all tutorials, stable version
+
+0.4.7
+
+* tutorial on transformations
+
+0.4.6
+
+* added Random Projections (aka Random Indexing), as another transformation model.
+* several DML-CZ specific updates
+
+0.4.5
+
+* updated documentation
+* further memory optimizations in SVD (LSI)
+
+0.4.4
+
+* added missing test files to MANIFEST.in
+
+0.4.3
+
+* documentation changes
+* added gensim reference to Wiki articles (SVD, LSI, LDA, TFIDF, ...)
+
+0.4.2
+
+* finally, a tutorial!
+* similarity queries got their own package
+
+0.4.1
+
+* pdf documentation
+* removed dependency on python2.5 (theoretically, gensim now runs on 2.6 and 2.7 as well).
+
+0.4.0
+
+* support for ``python setup.py test``
+* fixing package metadata
+* documentation clean-up
+
+0.2.0
+
+* First version

@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Experiments on Wikipedia &mdash; gensim documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.7.5',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="gensim documentation" href="index.html" />
+    <link rel="up" title="Tutorial" href="tutorial.html" />
+    <link rel="next" title="Distributed Computing" href="distributed.html" />
+    <link rel="prev" title="Similarity Queries" href="tut3.html" /> 
+  </head>
+  <body>
+
+<!--
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="index.html"><img src="_static/logo.png" border="0" alt="py4sci"/></a>
+</div>
+--!>
+
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="distributed.html" title="Distributed Computing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tut3.html" title="Similarity Queries"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Gensim home</a>|&nbsp;</li>
+        <li><a href="apiref.html">API reference</a>|&nbsp;</li>
+       <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+
+          <li><a href="tutorial.html" accesskey="U">Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Experiments on Wikipedia</a><ul>
+<li><a class="reference external" href="#preparing-the-corpus">Preparing the corpus</a></li>
+<li><a class="reference external" href="#latent-sematic-analysis">Latent Sematic Analysis</a></li>
+<li><a class="reference external" href="#latent-dirichlet-allocation">Latent Dirichlet Allocation</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="tut3.html"
+                                  title="previous chapter">Similarity Queries</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="distributed.html"
+                                  title="next chapter">Distributed Computing</a></p>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="experiments-on-wikipedia">
+<span id="wiki"></span><h1>Experiments on Wikipedia<a class="headerlink" href="#experiments-on-wikipedia" title="Permalink to this headline">¶</a></h1>
+<p>To test <cite>gensim</cite> performance, we run it against the English version of Wikipedia.</p>
+<p>This page describes the process of obtaining and processing Wikipedia, so that
+anyone can reproduce our results. It is assumed you have <cite>gensim</cite> properly <a class="reference external" href="install.html"><em>installed</em></a>.</p>
+<div class="section" id="preparing-the-corpus">
+<h2>Preparing the corpus<a class="headerlink" href="#preparing-the-corpus" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">First, download the dump of all Wikipedia articles from <a class="reference external" href="http://download.wikimedia.org/enwiki/">http://download.wikimedia.org/enwiki/</a>
+(you want a file like <cite>enwiki-latest-pages-articles.xml.bz2</cite>). This file is about 6GB in size
+and contains (compressed version of) all articles from the English Wikipedia.</p>
+</li>
+<li><p class="first">Convert the articles to plain text (process Wiki markup) and store the result as
+sparse TF-IDF vectors. In Python, this is easy to do on-the-fly (the code is included in <cite>gensim</cite>), and we don&#8217;t
+even need to uncompress the whole archive to disk. We will use the fact that
+the computation can be run incrementally, over the compressed file, when testing
+the single pass LSA algorithm.
+We will however also store the resulting TF-IDF vectors to disk,
+because this reduces time for multi-pass algorithms and is the most common
+scenario in practise:</p>
+<div class="highlight-python"><pre>$ python -m gensim.corpora.wikicorpus</pre>
+</div>
+</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This pre-processing step makes two passes over the 6GB wiki dump (one to extract
+the dictionary, one to create and store the sparse vectors) and takes about
+15 hours on my laptop, so you may want to go have a coffee or two.
+Also, you will need about 15GB of free disk space to store the sparse output vectors.</p>
+</div>
+</div>
+<div class="section" id="latent-sematic-analysis">
+<h2>Latent Sematic Analysis<a class="headerlink" href="#latent-sematic-analysis" title="Permalink to this headline">¶</a></h2>
+<p>First let&#8217;s load the corpus iterator and dictionary, created in the second step above:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">gensim</span><span class="o">,</span> <span class="nn">bz2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(asctime)s</span><span class="s"> : </span><span class="si">%(levelname)s</span><span class="s"> : </span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># load id-&gt;word mapping (the dictionary), one of the results of step 2 above</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">id2word</span> <span class="o">=</span> <span class="n">gensim</span><span class="o">.</span><span class="n">corpora</span><span class="o">.</span><span class="n">wikicorpus</span><span class="o">.</span><span class="n">WikiCorpus</span><span class="o">.</span><span class="n">loadDictionary</span><span class="p">(</span><span class="s">&#39;wiki_en_wordids.txt&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># load corpus iterator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mm</span> <span class="o">=</span> <span class="n">gensim</span><span class="o">.</span><span class="n">corpora</span><span class="o">.</span><span class="n">MmCorpus</span><span class="p">(</span><span class="s">&#39;wiki_en_tfidf.mm&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># mm = gensim.corpora.MmCorpus(bz2.BZ2File(&#39;wiki_en_tfidf.mm.bz2&#39;)) # use this if you compressed the TFIDF output</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">mm</span>
+<span class="go">MmCorpus(3199665 documents, 100000 features, 495547400 non-zero entries)</span>
+</pre></div>
+</div>
+<p>We see that our corpus contains 3.2M documents, 100K features (distinct
+tokens) and 0.5G non-zero entries in the sparse TF-IDF matrix. The corpus contains
+about 1.92 billion tokens in total.</p>
+<p>Now we&#8217;re ready to compute LSA of the English Wikipedia:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># extract 400 LSI topics; use the default one-pass algorithm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lsi</span> <span class="o">=</span> <span class="n">gensim</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">lsimodel</span><span class="o">.</span><span class="n">LsiModel</span><span class="p">(</span><span class="n">corpus</span><span class="o">=</span><span class="n">mm</span><span class="p">,</span> <span class="n">id2word</span><span class="o">=</span><span class="n">id2word</span><span class="p">,</span> <span class="n">numTopics</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># print the most contributing words (both positively and negatively) for each of the first ten topics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lsi</span><span class="o">.</span><span class="n">printTopics</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="go">topic #0(200.540): 0.475*&quot;delete&quot; + 0.383*&quot;deletion&quot; + 0.275*&quot;debate&quot; + 0.223*&quot;comments&quot; + 0.221*&quot;edits&quot; + 0.213*&quot;modify&quot; + 0.208*&quot;appropriate&quot; + 0.195*&quot;subsequent&quot; + 0.155*&quot;wp&quot; + 0.116*&quot;notability&quot;</span>
+<span class="go">topic #1(142.463): -0.292*&quot;diff&quot; + -0.277*&quot;link&quot; + -0.210*&quot;image&quot; + -0.160*&quot;www&quot; + 0.151*&quot;delete&quot; + -0.149*&quot;user&quot; + -0.134*&quot;contribs&quot; + -0.133*&quot;undo&quot; + -0.128*&quot;album&quot; + -0.115*&quot;copyright&quot;</span>
+<span class="go">topic #2(134.758): -0.458*&quot;diff&quot; + -0.415*&quot;link&quot; + -0.210*&quot;undo&quot; + -0.201*&quot;user&quot; + -0.195*&quot;www&quot; + -0.186*&quot;contribs&quot; + 0.154*&quot;image&quot; + -0.115*&quot;added&quot; + 0.098*&quot;album&quot; + -0.096*&quot;accounts&quot;</span>
+<span class="go">topic #3(124.902): 0.352*&quot;image&quot; + -0.240*&quot;age&quot; + -0.219*&quot;median&quot; + 0.212*&quot;copyright&quot; + -0.205*&quot;population&quot; + -0.196*&quot;income&quot; + 0.194*&quot;fair&quot; + -0.168*&quot;census&quot; + -0.166*&quot;km&quot; + -0.162*&quot;households&quot;</span>
+<span class="go">topic #4(116.735): 0.309*&quot;image&quot; + -0.195*&quot;players&quot; + 0.185*&quot;copyright&quot; + 0.182*&quot;median&quot; + 0.178*&quot;age&quot; + 0.169*&quot;fair&quot; + 0.159*&quot;income&quot; + 0.149*&quot;population&quot; + 0.134*&quot;households&quot; + -0.133*&quot;football&quot;</span>
+<span class="go">topic #5(100.069): -0.502*&quot;players&quot; + -0.317*&quot;football&quot; + -0.284*&quot;league&quot; + -0.194*&quot;footballers&quot; + -0.142*&quot;image&quot; + -0.132*&quot;season&quot; + -0.118*&quot;cup&quot; + -0.113*&quot;club&quot; + -0.110*&quot;baseball&quot; + 0.103*&quot;album&quot;</span>
+<span class="go">topic #6(92.077): 0.411*&quot;album&quot; + 0.275*&quot;albums&quot; + 0.217*&quot;band&quot; + 0.214*&quot;song&quot; + 0.184*&quot;chart&quot; + 0.163*&quot;songs&quot; + 0.160*&quot;singles&quot; + 0.149*&quot;vocals&quot; + 0.139*&quot;guitar&quot; + 0.129*&quot;track&quot;</span>
+<span class="go">topic #7(83.568): 0.248*&quot;wikipedia&quot; + 0.184*&quot;keep&quot; + -0.180*&quot;delete&quot; + 0.167*&quot;articles&quot; + 0.152*&quot;your&quot; + 0.150*&quot;my&quot; + -0.141*&quot;film&quot; + 0.130*&quot;we&quot; + 0.123*&quot;think&quot; + 0.121*&quot;user&quot;</span>
+<span class="go">topic #8(78.753): 0.485*&quot;kategori&quot; + 0.273*&quot;categoria&quot; + 0.240*&quot;kategorija&quot; + 0.226*&quot;kategorie&quot; + 0.167*&quot;категория&quot; + 0.160*&quot;categoría&quot; + 0.156*&quot;kategoria&quot; + 0.146*&quot;film&quot; + 0.143*&quot;categorie&quot; + 0.122*&quot;kategória&quot;</span>
+<span class="go">topic #9(78.701): -0.570*&quot;film&quot; + -0.444*&quot;films&quot; + 0.128*&quot;kategori&quot; + 0.126*&quot;album&quot; + 0.120*&quot;station&quot; + -0.118*&quot;television&quot; + -0.113*&quot;poster&quot; + -0.108*&quot;directed&quot; + -0.107*&quot;actors&quot; + 0.091*&quot;railway&quot;</span>
+</pre></div>
+</div>
+<p>Creating the LSI model of Wikipedia takes about 5 hours and 14 minutes on my laptop <a class="footnote-reference" href="#id3" id="id1">[1]</a>.
+If you need your results even faster, see the tutorial on <a class="reference external" href="distributed.html"><em>Distributed Computing</em></a>.</p>
+<p>We see that the total processing time is dominated by the preprocessing step of
+preparing the TF-IDF corpus, which took 15h. <a class="footnote-reference" href="#id4" id="id2">[2]</a></p>
+<p>The algorithm used in <cite>gensim</cite> only needs to see each input document once, so it
+is suitable for environments where the documents come as a non-repeatable stream,
+or where the cost of storing/iterating over the corpus multiple times is too high.</p>
+</div>
+<div class="section" id="latent-dirichlet-allocation">
+<h2>Latent Dirichlet Allocation<a class="headerlink" href="#latent-dirichlet-allocation" title="Permalink to this headline">¶</a></h2>
+<p><em>Coming soon.</em></p>
+<hr class="docutils" />
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>My laptop = Core2Duo 2.53GHz MacBook Pro, 4GB RAM, OS X with <cite>libVec</cite>.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><p class="first">Here we&#8217;re mostly interested in performance, but it is interesting to look at the
+retrieved LSA concepts, too. I am no Wikipedia expert and don&#8217;t see into Wiki&#8217;s bowels,
+but Brian Mingus had this to say about the result:</p>
+<div class="highlight-python"><pre>There appears to be a lot of noise in your dataset. The first three topics
+in your list appear to be meta topics, concerning the administration and
+cleanup of Wikipedia. These show up because you didn't exclude templates
+such as these, some of which are included in most articles for quality
+control: http://en.wikipedia.org/wiki/Wikipedia:Template_messages/Cleanup
+
+The fourth and fifth topics clearly shows the influence of bots that import
+massive databases of cities, countries, etc. and their statistics such as
+population, capita, etc.
+
+The sixth shows the influence of sports bots, and the seventh of music bots.</pre>
+</div>
+<p class="last">So the top ten concepts are apparently dominated by Wikipedia robots and expanded
+templates; this is a good reminder that LSA is a powerful tool for data analysis,
+but no magic pill. As always, it&#8217;s <a class="reference external" href="http://en.wikipedia.org/wiki/Garbage_In,_Garbage_Out">garbage in, garbage out</a>...
+By the way, improvements to the Wiki markup parsing code are welcome :-)</p>
+</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="distributed.html" title="Distributed Computing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tut3.html" title="Similarity Queries"
+             >previous</a> |</li>
+        <li><a href="index.html">Gensim home</a>|&nbsp;</li>
+        <li><a href="apiref.html">API reference</a>|&nbsp;</li>
+       <li><a href="tutorial.html">Tutorials</a> &raquo;</li>
+
+          <li><a href="tutorial.html" >Tutorial</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Radim Řehůřek &lt;radimrehurek(at)seznam.cz&gt;.
+      Last updated on Nov 03, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>
