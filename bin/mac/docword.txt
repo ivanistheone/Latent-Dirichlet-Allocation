@@ -1,0 +1,1 @@
+../share/docword_10000_ALL.txt

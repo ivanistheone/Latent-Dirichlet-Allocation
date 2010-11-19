@@ -1,0 +1,228 @@
+<example1/20000101.0001.txt> t5 t1 
+<example1/20000101.0002.txt> t9 t10 t4 
+<example1/20000101.0003.txt> t10 t4 
+<example1/20000101.0004.txt> t3 t4 t10 
+<example1/20000101.0005.txt> t9 t1 t8 
+<example1/20000101.0006.txt> t10 t4 t3 
+<example1/20000101.0007.txt> t10 t4 t3 
+<example1/20000101.0008.txt> t10 t8 t4 t6 
+<example1/20000101.0009.txt> t10 t4 
+<example1/20000101.0015.txt> t10 t4 t8 
+<example1/20000101.0016.txt> t10 t4 t3 t9 
+<example1/20000101.0017.txt> t10 t9 t4 
+<example1/20000101.0018.txt> t10 t8 t5 t6 
+<example1/20000101.0019.txt> t8 t10 t4 t9 
+<example1/20000101.0020.txt> t3 t6 
+<example1/20000101.0021.txt> t4 t8 t3 t6 
+<example1/20000101.0022.txt> t4 t8 t3 
+<example1/20000101.0023.txt> t4 t10 
+<example1/20000101.0024.txt> t10 t4 t9 
+<example1/20000101.0025.txt> t10 t4 t8 t9 
+<example1/20000101.0026.txt> t4 t10 t8 
+<example1/20000101.0027.txt> t3 t1 t4 
+<example1/20000101.0028.txt> t4 t10 t8 t9 
+<example1/20000101.0029.txt> t2 t10 
+<example1/20000101.0042.txt> t4 t10 t9 t8 
+<example1/20000101.0043.txt> t3 
+<example1/20000101.0045.txt> t10 t4 t8 t9 
+<example1/20000101.0046.txt> t4 t8 t5 t10 
+<example1/20000101.0048.txt> t7 
+<example1/20000101.0049.txt> t7 
+<example1/20000101.0050.txt> t4 t2 t6 t8 
+<example1/20000101.0051.txt> t4 t2 t6 t8 
+<example1/20000101.0052.txt> t4 t7 t9 t6 
+<example1/20000101.0053.txt> t4 t7 t6 t9 
+<example1/20000101.0054.txt> t6 t8 t3 
+<example1/20000101.0055.txt> t6 t8 
+<example1/20000101.0056.txt> t2 t3 
+<example1/20000101.0057.txt> t2 t3 
+<example1/20000101.0058.txt> t7 t6 t9 t8 
+<example1/20000101.0059.txt> t7 t6 t9 t8 
+<example1/20000101.0060.txt> t6 t8 t9 
+<example1/20000101.0061.txt> t6 t8 
+<example1/20000101.0062.txt> t6 t7 t8 
+<example1/20000101.0063.txt> t6 t7 t8 
+<example1/20000101.0064.txt> t9 t6 
+<example1/20000101.0065.txt> t9 t6 
+<example1/20000101.0066.txt> t9 t6 t8 
+<example1/20000101.0067.txt> t9 t6 t8 
+<example1/20000101.0068.txt> t7 t6 t4 
+<example1/20000101.0069.txt> t7 t6 t4 
+<example1/20000101.0070.txt> t7 t6 t4 
+<example1/20000101.0071.txt> t7 t6 t4 
+<example1/20000101.0072.txt> t6 
+<example1/20000101.0073.txt> t6 
+<example1/20000101.0074.txt> t6 t8 
+<example1/20000101.0075.txt> t10 t8 t6 t7 
+<example1/20000101.0077.txt> t2 t8 t6 
+<example1/20000101.0078.txt> t2 t8 t6 
+<example1/20000101.0079.txt> t2 t8 t4 
+<example1/20000101.0080.txt> t2 t8 t4 
+<example1/20000101.0081.txt> t9 t6 t10 t7 
+<example1/20000101.0082.txt> t6 t9 t10 t7 
+<example1/20000101.0085.txt> t4 t9 t8 
+<example1/20000101.0086.txt> t2 t8 t4 
+<example1/20000101.0087.txt> t2 t8 
+<example1/20000101.0088.txt> t2 t8 
+<example1/20000101.0089.txt> t2 t6 t8 t9 
+<example1/20000101.0090.txt> t4 t8 t6 t2 
+<example1/20000101.0091.txt> t6 
+<example1/20000101.0092.txt> t6 
+<example1/20000101.0093.txt> t6 t8 t7 t4 
+<example1/20000101.0094.txt> t6 t8 t7 
+<example1/20000101.0095.txt> t7 
+<example1/20000101.0096.txt> t8 t4 t9 t7 
+<example1/20000101.0097.txt> t1 t5 t4 t8 
+<example1/20000101.0098.txt> t5 t1 t9 
+<example1/20000101.0099.txt> t1 t5 t8 
+<example1/20000101.0100.txt> t1 t5 
+<example1/20000101.0101.txt> t1 t5 t8 
+<example1/20000101.0102.txt> t1 t8 t5 
+<example1/20000101.0103.txt> t1 t5 t8 
+<example1/20000101.0104.txt> t1 t5 t8 
+<example1/20000101.0105.txt> t1 t8 t5 
+<example1/20000101.0106.txt> t9 t8 t1 
+<example1/20000101.0107.txt> t1 t5 t8 
+<example1/20000101.0108.txt> t1 t5 
+<example1/20000101.0109.txt> t2 t8 t4 t6 
+<example1/20000101.0110.txt> t2 t8 t4 
+<example1/20000101.0111.txt> t10 t2 t8 
+<example1/20000101.0119.txt> t3 t8 t10 
+<example1/20000101.0120.txt> t4 t7 
+<example1/20000101.0121.txt> t8 t6 t9 
+<example1/20000101.0122.txt> t8 t9 t4 
+<example1/20000101.0123.txt> t7 t6 t8 
+<example1/20000101.0124.txt> t7 t6 
+<example1/20000101.0125.txt> t1 t8 t5 
+<example1/20000101.0126.txt> t3 t4 t10 t8 
+<example1/20000101.0127.txt> t3 t4 t8 
+<example1/20000101.0128.txt> t4 t10 t9 t8 
+<example1/20000101.0129.txt> t2 t10 
+<example1/20000101.0130.txt> t10 t9 
+<example1/20000101.0131.txt> t10 t4 t8 t9 
+<example1/20000101.0132.txt> t3 
+<example1/20000101.0133.txt> t3 
+<example1/20000101.0134.txt> t7 t6 t4 
+<example1/20000101.0135.txt> t7 t8 t6 
+<example1/20000101.0136.txt> t8 t4 t9 
+<example1/20000101.0137.txt> t7 t8 t3 t6 
+<example1/20000101.0138.txt> t2 t6 t7 t4 
+<example1/20000101.0139.txt> t2 t6 t7 t9 
+<example1/20000101.0140.txt> t10 t8 t4 t7 
+<example1/20000101.0141.txt> t10 t4 t7 t9 
+<example1/20000101.0142.txt> t7 t4 
+<example1/20000101.0143.txt> t10 t4 t8 
+<example1/20000101.0144.txt> t9 t8 
+<example1/20000101.0145.txt> t9 
+<example1/20000101.0146.txt> t1 
+<example1/20000101.0147.txt> t6 t8 t7 t9 
+<example1/20000101.0148.txt> t10 t4 t8 
+<example1/20000101.0149.txt> t10 t4 t8 t9 
+<example1/20000101.0150.txt> t3 t9 t4 
+<example1/20000101.0151.txt> t5 t3 t2 t8 
+<example1/20000101.0152.txt> t3 
+<example1/20000101.0153.txt> t10 t8 t4 t1 
+<example1/20000101.0154.txt> t4 t10 
+<example1/20000101.0155.txt> t10 t4 t9 t3 
+<example1/20000101.0156.txt> t1 t8 t5 
+<example1/20000101.0157.txt> t4 t3 t10 
+<example1/20000101.0158.txt> t1 t9 t8 t4 
+<example1/20000101.0159.txt> t10 t9 t4 
+<example1/20000101.0163.txt> t7 t4 t3 
+<example1/20000101.0165.txt> t10 t8 t4 t9 
+<example1/20000101.0166.txt> t8 t6 t10 t7 
+<example1/20000101.0167.txt> t7 t4 
+<example1/20000101.0168.txt> t7 t4 
+<example1/20000101.0170.txt> t1 t5 t8 t9 
+<example1/20000101.0171.txt> t1 t5 
+<example1/20000101.0172.txt> t1 t9 t8 
+<example1/20000101.0173.txt> t1 t8 
+<example1/20000101.0174.txt> t10 t4 t8 
+<example1/20000101.0175.txt> t3 t8 
+<example1/20000101.0176.txt> t3 t8 
+<example1/20000101.0177.txt> t7 t4 t8 
+<example1/20000101.0178.txt> t1 t5 
+<example1/20000101.0179.txt> t1 t9 t8 
+<example1/20000101.0180.txt> t10 t7 t8 t4 
+<example1/20000101.0181.txt> t4 t8 
+<example1/20000101.0182.txt> t4 t8 t9 
+<example1/20000101.0183.txt> t10 t9 t8 
+<example1/20000101.0184.txt> t2 t1 t5 
+<example1/20000101.0185.txt> t9 t10 t8 t6 
+<example1/20000101.0186.txt> t9 t1 t4 
+<example1/20000101.0187.txt> t9 t1 t8 
+<example1/20000101.0188.txt> t9 
+<example1/20000101.0189.txt> t4 t8 
+<example1/20000101.0190.txt> t7 
+<example1/20000101.0191.txt> t4 t8 t3 t9 
+<example1/20000101.0192.txt> t8 t9 t4 t6 
+<example1/20000101.0193.txt> t8 t3 t6 
+<example1/20000101.0194.txt> t4 t9 
+<example1/20000101.0195.txt> t4 t6 
+<example1/20000101.0196.txt> t4 t8 t1 
+<example1/20000101.0197.txt> t8 t4 t9 
+<example1/20000101.0198.txt> t1 t8 
+<example1/20000101.0199.txt> t1 t8 t4 
+<example1/20000101.0200.txt> t3 
+<example1/20000101.0201.txt> t3 
+<example1/20000101.0202.txt> t3 t8 t10 
+<example1/20000101.0203.txt> t10 t2 t9 
+<example1/20000101.0205.txt> t10 t9 
+<example1/20000101.0211.txt> t10 t4 t9 
+<example1/20000101.0212.txt> t6 t8 
+<example1/20000101.0213.txt> t7 
+<example1/20000101.0214.txt> t1 t5 t8 t9 
+<example1/20000101.0215.txt> t3 t8 
+<example1/20000101.0216.txt> t7 
+<example1/20000101.0217.txt> t7 t6 t8 
+<example1/20000101.0218.txt> t7 t6 
+<example1/20000101.0219.txt> t1 t8 t5 
+<example1/20000101.0220.txt> t1 t8 t6 
+<example1/20000101.0221.txt> t2 t3 t4 
+<example1/20000101.0222.txt> t4 t10 t3 t8 
+<example1/20000101.0223.txt> t8 t1 
+<example1/20000101.0224.txt> t1 t5 
+<example1/20000101.0225.txt> t5 t1 t8 
+<example1/20000101.0226.txt> t1 t5 t8 
+<example1/20000101.0227.txt> t5 t1 
+<example1/20000101.0228.txt> t10 t4 t8 
+<example1/20000101.0229.txt> t5 t1 t8 
+<example1/20000101.0230.txt> t10 t8 t4 
+<example1/20000101.0231.txt> t9 
+<example1/20000101.0232.txt> t5 t1 t8 t9 
+<example1/20000101.0233.txt> t5 t1 t8 t9 
+<example1/20000101.0234.txt> t9 t1 t8 
+<example1/20000101.0235.txt> t9 t1 t8 
+<example1/20000101.0236.txt> t10 t9 t4 t1 
+<example1/20000101.0239.txt> t3 t8 t9 
+<example1/20000101.0240.txt> t5 t1 
+<example1/20000101.0241.txt> t5 t9 t8 
+<example1/20000101.0242.txt> t5 t10 t8 
+<example1/20000101.0245.txt> t1 t4 t8 
+<example1/20000101.0246.txt> t1 t8 
+<example1/20000101.0247.txt> t1 t5 t8 
+<example1/20000101.0248.txt> t4 t1 t8 
+<example1/20000101.0249.txt> t1 t5 t8 
+<example1/20000101.0250.txt> t1 t8 t5 t9 
+<example1/20000101.0251.txt> t1 t8 t5 
+<example1/20000101.0252.txt> t5 t1 t8 
+<example1/20000101.0253.txt> t1 t5 t8 
+<example1/20000101.0254.txt> t5 t1 t4 
+<example1/20000101.0255.txt> t5 t1 
+<example1/20000101.0256.txt> t5 t1 
+<example1/20000101.0258.txt> t1 t5 
+<example1/20000101.0259.txt> t6 t9 t8 
+<example1/20000101.0260.txt> t5 t1 
+<example1/20000101.0261.txt> t5 t1 
+<example1/20000101.0262.txt> t5 t1 
+<example1/20000101.0263.txt> t5 t1 
+<example1/20000101.0264.txt> t1 t5 t8 
+<example1/20000101.0265.txt> t2 t7 t6 t8 
+<example1/20000101.0266.txt> t1 t2 t9 
+<example1/20000101.0267.txt> t9 t6 t8 
+<example1/20000101.0269.txt> t9 t8 
+<example1/20000101.0270.txt> t9 t8 
+<example1/20000101.0271.txt> t9 t8 
+<example1/20000101.0272.txt> t9 t8 
+<example1/20000101.0273.txt> t9 t8 t4 
+<example1/20000101.0274.txt> t9 t8 t6 

@@ -1,0 +1,1 @@
+../share/vocab_10000.txt
