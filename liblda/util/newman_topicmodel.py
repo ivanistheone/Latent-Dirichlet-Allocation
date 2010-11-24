@@ -2,12 +2,25 @@
 # Set of helper functions to read, write and call David Newman's
 # topic model code: http://www.ics.uci.edu/~newman/code/topicmodel/
 
+
+import sys, os
 import logging
 import math
 
 import numpy
 
-logger = logging.getLogger("matutils")
+# from scipy import sparse
+
+
+# needed?
+PROJECT_PATH=os.path.realpath(os.path.join(os.path.dirname(__file__),".."))
+PACK_DIR=os.path.realpath(os.path.join(os.path.dirname(__file__),"packs/"))
+RUN_ROOT = os.path.join(PROJECT_PATH, "data/runs/")
+#RUN_DIR="../data/runs/run2_first_test/"
+
+
+
+logger = logging.getLogger("newmanlib")
 logger.setLevel(logging.INFO)
 
 
@@ -20,8 +33,13 @@ logger.setLevel(logging.INFO)
 class NewmanWriter(object):
     """
     Store corpus into a file docword.txt in the Dave Newman's sparse matrix format.
-    """
 
+    used via static method writeCorpus as follows:
+        NewmanWriter.writeCorpus(fname, corpus)
+        where fname is either a file-like object or a string containing the filename,
+        and corpus is of the type [[(,)]]
+
+    """
 
     def __init__(self, fname):
         self.fname = fname
@@ -75,7 +93,10 @@ class NewmanWriter(object):
             if weight == 0:
                 # to ensure len(doc) does what is expected, there must not be any zero elements in the sparse document
                 raise ValueError("zero weights not allowed in sparse documents; check your document generator")
-            self.fout.write("%i %i %s\n" % (docNo + 1, termId + 1, weight)) # +1 because MM format starts counting from 1
+            #self.fout.write("%i %i %s\n" % (docNo + 1, termId + 1, weight)) # +1 because MM format starts counting from 1
+            # Newman reader function int **read_sparse(char *fname, int *nr_, int *nc_)
+            # is looking for a %d in the file so I will coerse to int
+            self.fout.write("%i %i %i\n" % (docNo + 1, termId + 1, int(weight))) # +1 because MM format starts counting from 1
         self.lastDocNo = docNo
 
 
@@ -254,4 +275,195 @@ class NewmanReader(object):
 
 
 #endclas NewmanReader
+
+
+
+
+
+
+
+
+
+############################## ############################## ##############################
+############################## ############################## ##############################
+############################## ############################## ##############################
+############################## ############################## ##############################
+
+
+class NewmanLdaModel(object):
+    """
+    This is the the main class for the LDA topic model functionnality
+
+    attrinbutes:
+        N           : total number of words in documet collection
+        T           : number of topics in model
+        documents   : reference to a DocumentColleciton object
+        D           : len(documents)
+        vocab       : ref to Vacabulary object
+        W           : len(vocab)
+
+        phi         : topic-word distribution
+                      size: WxT
+                      alias: prob_w_given_t
+        theta       : topic-document distibution
+                      size: TxD
+                      alias: prob_t_given_d
+        z           : the topic assignment
+                      size: ?
+        topics      : array of size T with short descriptions for each of the topics
+                      ['physics', 'chemistry', ... , 'general science']
+
+
+    methods:
+        __init__ constuctor ... see below
+        train(method)
+        query(queryDocCol, method)
+
+    """
+
+    def __init__(self): #, documents=None, T=None, vocab=None):
+        """
+        must give a DocumentCollection object upon creation and T # topics
+        """
+
+        self.T=None
+        self.documents = None
+
+
+        # trained / non-trained
+        self.is_trained = False
+
+
+#    def __init__(self,rundir):
+#        self.trained = False
+#        self.path = '?????'
+
+
+
+    def fromDocumentCollection(self, documents=None, T=None, vocab=None):
+        pass
+
+    def loadFromPickledDict(self, fileobj):
+        """Loads the TopicModel from a cPickle file-like object """
+        pass
+
+    def loadFromJson(self):
+        """Loads the TopicModel from a json file"""
+        pass
+
+
+    def train(self, method):
+        """ run the training method on the TopicModel
+            allowed values are:
+            NewmanGibbs
+            (soon) AndrzejewskiCVB
+            """
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+def loadsparsemat(filename):
+    """ Load a Nweman sparse matrix from file `filename` """
+    indata = open(filename).readlines()
+    NROWS=int(indata[0].strip() )       # first line is W
+    NCOLS=int(indata[1].strip() )       # T
+    nCols =int(indata[2].strip() )
+    cols = indata[3:]
+    assert( len(cols) == nCols)
+
+    wp = numpy.zeros([NROWS,NCOLS])       # undormalized word dopic \beta distr.
+    for line in cols:
+        if len(line)>0:
+            [i,j,d]= line.split()
+            wp[int(i)-1,int(j)-1] = d
+    return wp
+
+
+
+
+def conv_Ndt_to_theta(input):
+    """
+    converts the topic counts in documents
+    to a probability distibution
+      p(t|d)
+    rows are documents
+    columns are topic proportions
+    """
+
+    numDocs,numT = input.shape
+
+
+    normalizer = 1.0/numpy.sum(input,1)     # 1 / total num of words in each topic
+    for t in numpy.arange(0,numT):
+        input[:,t]=input[:,t]*normalizer
+
+    prob_t_given_d = input.transpose()
+
+
+    # TODO: add alpha ?
+
+    return prob_t_given_d
+
+
+
+
+
+
+
+
+def conv_Nwt_to_phi(input):
+    """
+    convers number of words in topic counts
+    to a probability distibution
+      p(w|t)
+    rows are topics
+    columns are word likelyhoods
+    """
+
+    numTerms,numT = input.shape
+
+    prob_w_given_t = numpy.dot(input, numpy.diag(1/numpy.sum(input,0))  )
+
+    # TODO: add beta???
+
+    return prob_w_given_t.transpose()
+
+
+
+
+
+# FIXME: just copied over the old code needs to be fixed...
+def calculate_perplexity(d_w_cnt, prob_w_given_t, prob_t_given_d):
+    """ guess what it does """
+    # compute the perplexity
+
+
+    # load the docword
+    # assume they are all the same :)
+    dwpath = RUN_ROOT+"share/"
+    d_w_cnt = get_d_w_cnt(dwpath)
+
+
+    N=float( sum(d_w_cnt,0)[2] )
+    inner_sum=0.0
+
+    for [d,w,cnt] in d_w_cnt:
+        prelog = dot(prob_w_given_t[w,:], prob_t_given_d[:,d])
+        inner_sum = inner_sum + cnt*log(prelog)
+
+    pplex = exp(-1*inner_sum/N)
+    return pplex
+
+
+
+
 
