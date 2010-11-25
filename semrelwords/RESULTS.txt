@@ -1,0 +1,115 @@
+# IPython log file
+
+Latent Dirichlet allocation approach to finding sem. rel. words
+
+
+=== Idea ===
+
+    As pointed out by Leon Palafox in the /qa, the use of topic models,
+    which find groups of co-occuring words, can be a good approach to 
+    this challenge.
+    Running LDA to identify T topics and then reporting words from the
+    same topic for each of the words in the vocabulary.
+
+    My intiuition was that if we use many topics, we will be able to get
+    very specific clusters of words and then reporting the top words
+    in this topic will somehow be "semantically" related.
+
+
+=== Experiment ===
+
+    I ran Dave Newman's Gibbs sampling LDA implementation using the 1M
+    vocabulary and the subset of all documents with two words or more.
+
+    Computation time was about an hour for T=20 topics on a laptop.
+    RAM usage was 1.5G for T=20 and 350M for T=3.
+
+
+
+=== Results ===
+
+    A topic model learns two sets of probability distributions (2D arrays, sum 1 in each row),
+      p(w|t) T x |vocab|   how often does word w appeat in topic t
+      p(t|d) numDocs x T   how present is topic t in document d
+
+    The results of a topic model usually display the most likely words
+    in each topic ... 
+       print top 20 from sorted( p(w|t) ) for t in 1 .. T.
+
+    Here is some topics that were automatically found yesterday:
+
+        import cPickle
+        topics = cPickle.load(open("topics_a0.5.pickle"))
+        for t in topics:
+            print " ".join(t)
+
+    t1         american estate name agents study record id disease end party middle class people heart life summary children work studies women
+    t2         dr john mr david professor peter contact paul richard sir michael james mrs william j thomas robert george martin mark
+    t3         service health development centre council services community west management information national research business care south training north east programme support
+    t4         / // 1 2 3 0 c 4 b d level 5 part isbn i http year e table n
+    t5         world o club hall football cup n contact england league school town team castle scott mark park gold kevin peter
+    t6         m x g mm code 2 4 order 1 v northern 3 cm version 10 ireland k 500 size 200
+    t7         data system systems software computer technology information control radio design production management use test search process access solutions equipment performance
+    t8         % 20 2 // p 100 years c s e r 3 10 t k 50 000 b d 40
+    t9         action energy plan uk course land minister british plans need government golf club advice channel association work plant people fees
+    t10        2006 2005 2004 may 2003 june july march 12 2002 st 15 21 11 2000 april 13 14 16 2001
+    t11         group world time form online free game times war book car van music day travel uk mail business games network
+    t12         new press series issue // library union release news trade date tv york old http jack film bbc story university
+    t13         list school church year work report project university college members group member schools students history general hour nature scheme experience
+    t14         water system use card room credit power video control quality oil ground display tax self area systems link farm cards
+    t15         air art royal theatre cancer music dance gallery force show school film wall glass right type baby tree front summer
+    t16         research international group programme case support project law executive survey general studies act management education student rights policy information officer
+    t17         1 2 4 3 8 5 6 7 road 9 street email tel 020 london house telephone fax united v
+    t18         | ltd pm london page home uk links news hotel company house university comments services city manchester office 11.00 index
+    t19         site web design windows server language user pages sites english microsoft life product ~ skills data change directory task software
+    t20         green paper court document format black red word white people blue show day files download book pdf high big line
+
+
+    t1 = US political jargon? 
+    t2 = names.... cool! i didn't know LDA can do that.
+    t3 = healthcare?
+    t4 = words used in references
+    t5 = football, premiership 
+    t6 = SI + Ireland :)
+    t7 = information technologies
+    t8 = ?
+    t9 = UK political jargon
+   t10 = import datetime
+   t11 = ?
+   t12 = media 
+   t13 = groups and organizations   (lol... i see how LDA thinks a mailing list is more important than school OR church !)
+   t14 = natural resources and other things people in suits want control over
+   t17 = numbers...
+   t19 = web and computer stuff
+
+
+    I like how it was able to cluster the numbers in t17  ...
+
+
+    Note:
+    After seeing very un-differentiated topics at first, I changed
+    the alpha parameter (topic word specificity) so it will
+    favor more sparse representations -- i.e each topic will
+    be as different from the others as possible.
+    The list you see above is from this second run.
+
+
+
+=== Discussion ===
+
+    I haven't been able to find semantically related words 
+    for each word, but at least I found //some// semantically related groups of words.
+
+    More RAM is needed, or a more efficient implementation if we are to scale T,
+    towards the task of identifying compact clusters of word.
+
+    To be continued...
+    https://github.com/ivanistheone/Latent-Dirichlet-Allocation/tree/master/semrelwords/
+    
+
+
+
+Ivan
+
+
+

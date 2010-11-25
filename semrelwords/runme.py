@@ -16,7 +16,7 @@ import liblda
 
 # settings file with RUNDIRS path, topicmodel location and PROJECT_HOME
 # from liblda import settings ?
-from liblda import local_settings
+from liblda.local_settings import *
 
 
 # to see logging...
@@ -25,48 +25,27 @@ logging.basicConfig(format = '%(asctime)s : %(levelname)s : %(message)s', level 
 
 
 
-# some taks specific config
-PROJECT_PATH=os.path.realpath(os.path.join(os.path.dirname(__file__),".."))
 
 DATA_PATH=os.path.join(PROJECT_PATH,"data/semrelwords/")
-
 INFILE="ukwac-uniqmultiwordterms.SAMPLE.txt"
 VOCABFILE="ukwac-vocabulary.SAMPLE.txt"
 
 
-print "Now let's get started...."
 
-logging.info("Readin in vocabulary file")
-
-
-vfile = open(os.path.join(DATA_PATH, VOCABFILE) )
-
-
-vocab={}
-index=1
-for line in vfile.readlines():
-    tokens = line.split()
-    if len(tokens) != 2:
-        continue
-    else:
-        freq, word = line.split()
-        vocab[index]=word
-        index = index + 1
-
-print  "total number of words:" + str(index-1)
+logging.info("Creating corpus")
+infilename = os.path.join(DATA_PATH, INFILE)
+vfilename =  os.path.join(DATA_PATH, VOCABFILE)
+from liblda.low2corpus import Low2Corpus
+c = Low2Corpus(infilename)
+c.buildVocabs(vfilename)
 
 
 
-logging.info("Setting up corpus")
-
-corpusfilename = os.path.join(DATA_PATH, INFILE)
-
-corpus = corpora.LowCorpus(corpusfilename, id2word=vocab)
 
 
-
+logging.info("Importing NewmanLdaModel for you")
 from liblda.newmanLDAmodel import NewmanLdaModel
 
-lda = NewmanLdaModel(numT=3,corpus=corpus)
+
 
 
