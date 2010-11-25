@@ -1,0 +1,240 @@
+
+Wed 24 Nov 2010 01:28:25 EST
+
+    Just had an idea for an LDA application.
+     `journal club`
+    You input some pdfs,
+    LDA runs and produces paper topics,
+    then use google search to pull in new pdfs
+    for each topic:
+      res = google_search(select top 10 words in topic)
+      topic.new_papers = res
+
+    must be tried out with the arXiv topics I have,
+    if only I had internet!
+
+
+Mon 18 Oct 2010 12:58:57 EEST
+
+    Furthermore, I think I should use the "rapid dev" idea
+    and set bi-weekly goals for myself.
+    Nov 15th
+    Dec 1st
+    Dec 15th
+    Jan 1st
+    Jan 15th
+    etc...
+
+
+    Each iteration period will contain the following stesp:
+        - code phase 
+        - test everythign works
+        - documentation phase (two days at the end)
+          when I also write the a LaTeX update report for Doina
+
+    The goals for each iteration should be SIMPLE.
+    Here is a "first draft" of the goals
+    
+    Nov 15th    Read papers and setup repos and dokuwiki
+
+    Dec 1st     liblda calling Newman's code
+                data structures for
+                    
+                    W       a list of words (our dictionary for  --> vocabulary object
+                    rawd    a documnet (pointer to a .txt file)
+                    rawD    a collection of links to .txt files on the FS
+                    d_{W}   a feature vector for d under the vocabulary W
+                    D_W     a document collection for some vocabulary W
+                            D is isomorphic to a 2D array:
+                            for rawdocument i (row)
+                            put the word counts in column j 
+                    p(w|d)
+                    p(
+
+                persistance of data strucutre mentionned above:
+                    a = libldaDataStructure(base_dir="/home/ivan/ldaruns/run443/")
+                    a.save()    : writes to out a pickled/sparcemat to a.filename
+                    a.load()    : searches for a.filename and loads it from disk
+
+                basic preprocessing scripts that gets us from a rawD to a D
+
+                basic TopicModel class:
+                    TM = TopicModel()
+                    TM.D = D
+                    TM.T = 20
+                    TM.inf_algo = TopicModel.INF_ALGOS[0]       #  = NewetonGibbsCcode
+                    TM.run()
+                    TM.save()   calls:
+                        D.theta.save() save topic-document distibution
+                                       size: TxD
+                                       alias: prob_t_given_d,
+                                       for this algo we "save"
+                                       the data that is in dp.txt
+                                       in our native format TM20.prob_t_given_d
+
+                        D.phi.save()   save the topic-word distibution
+                                       size: WxT
+                                       alias: prob_w_given_t
+                                        saves the file wp.txt data in some
+                                        new format in base_dir
+                        D.z.save()     save the topic assignment values
+                                       size: D.total_n_words 
+                                       type: int \in {1,...,T}
+                                       saves the data from w.txt 
+                    TM.freeMEM()    commits seppucu and frees up all
+                                    the RAM it was using !
+                
+                libnewman.py
+                libnewman.loadsparsemat()
+                libnewman.loadprobs()
+                    calls get_probs
+                    and loads data from dp.txt, wp.txt and z.txt into RAM
+                TM.load_from_native(inf_algo=<<optional>>)
+                    loads the t
+
+            Then we document the whole workings -- the 
+        
+
+    ===== /end of iteration ====
+
+    Dec 15th    Result manipulation and visualization
+
+                1/
+                GUI for displaying topics learned.
+                plots, wordlists, wordclouds
+                canvas visualization ?
+                    ability to drag words around in a "topic box"
+                    manually reorganize terms in topic 
+
+                    --  maybe some gui element to "clone terms"
+                        and stick together words to form digrams
+                    --  could run a pass over document collection
+                        and see if we cannot "auto show digrams"
+
+                2/
+                Some GUI for displaying doc / topic assignments
+                select my favorite set of papers...
+                (script search for arXiv identifiers over my papers folder 
+                 the bibtexfile and papers from patrick...)
+                
+                Collect all the necessary metadata:
+
+                paper = authors
+                        title
+                        png of first page
+                        date!
+                        citation rank? 
+                
+                So GUI could be a scrollable timeline 
+                and fixed margins where the topics are displayed
+                (topics are fixed in time for the moment)
+
+                The central timeline view is a function of the 
+                document citation ranks (more citation rank bigger
+                icon) and a user selected "filter vector" f
+                initially f starts as the uniform distribution over the topics |T|
+                But the GUI gives a controller for changing the f 
+                  topic34:  [ only this | + | - | remove ]
+                remove sets f(34) to zero (and renormalizes? maybe shouldn't 
+                                           to keep icons from changing)
+                only this sets f(34)=1 and all other elements to 0
+                    in this mode other topics controllers become [ only this | add this ]
+                    and if clicked on [add this] you get a uniform dist on the these two topics
+                    joke:   when clicking on third topics a fake shareware screen opens
+                            "you have reached the maximum number of topics,
+                             to purchase more topic filters sign up for a $9.99 account ;)"
+                    user input: can be suggested on their third or fourth visit
+                                in the form of a little shinging highlight of
+                                around the "topic short labels" with a popup
+                                "suggest a better short description" for each topic...
+                [+|-] bump the f vector f(34) up and down relative to the others
+
+                can-I get citaiton ranks programatically ?
+
+    ===== /end of iteration ====
+                    
+    Jan 1st     KL algorithm for subtopics
+                
+    Jan 15th    Modularization (polymorphism)
+                change codebase accept different subclasses of:
+                TMInfAlgo
+                    NewmanInf, VariationalInf, ParallelInf, CUDAInf,
+                and rawD could be different subclasses of
+                RawDocumentCollection
+                    FSDocumnetCollection, MySQLDocumentCollection, PDF, TXT etc..
+                    maybe with mixins !
+                some general rawW to W functon:
+                    - configurable stopword filters
+                    - language ?
+                    - use side informaiton in rawD intelligently
+                    - use WordNet info?
+                    - part of speech analysis?
+                    - how to keep rare but very informative words
+                      (given a first topic run, can we re-evaluate W selection
+                       possibly find informative words that only associated 
+                       with some topics?
+
+                    
+                
+
+
+
+Mon 18 Oct 2010 12:00:00 EEST
+
+    So here is the plan.
+    We need to have a SERIOUS code base for LDA in python.
+    
+    docs/
+        quickstart.txt      To get people interested in project
+        demo.txt            show some cool stuff with wikipedia data
+
+    wiki/   symlink to DOKUROOT/data/ (so i get both pages and media)
+            where i will store all my LDA notes etc...
+        pages/
+            review.txt
+            LDA theory.txt
+            Variational_methods.txt
+            Gibbs sampling.txt
+            papers/     annotated bibliography
+                ICML2010/
+                ICML2009/
+                ICML2008 ?
+                seminal/
+                LDA/
+                genralizations/
+
+    src/
+        models/     TopicModel, ProbDistr
+        scripts/    preprocessing scripts
+                    data extraciton from SQL, txt etc.
+                    conversion from various other formats
+        algorithms/ Param estimation and Inference
+                    in Python (for tests)  and C
+                    tests of everything
+
+    tests/
+        all the pieces of should be tested as
+        they are developed
+        which begs the queston: how do you test a random algorithm?
+
+
+
+    then in a SEPARATE project I will have
+    my research stuff:
+
+    ldaresearch/
+        wikipedia/
+        arXiv/
+        KLsubtopics/
+        REfeatures/
+
+    This folder will not necessarily be public -- I wouldn't
+    want to get scooped ;)
+    
+    JAVA and Hadoop is cool -- but if I am not mistaken I can
+    run ANY kind of code on the nodes -- so I will stick to 
+    python, numpy and C for the Gibbs samplers.
+
+
+
+
