@@ -125,7 +125,7 @@ class NewmanLdaModel(interfaces.LdaModelABC):
         """
         if not self.numT:
             raise  IncompleInputError('Must specify number of topics: self.numT')
-        if not self.corpus:
+        if self.corpus ==None:
             raise  IncompleInputError('Must provide a corpus to train on: self.corpus')
 
 

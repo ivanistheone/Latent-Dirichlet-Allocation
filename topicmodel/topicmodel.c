@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   Ndt = dmat(D,T);
   Nt  = dvec(T);  
 
-  alpha = 0.05 * N / (D * T);
+  alpha = 0.5;  //0.05 * N / (D * T);
   beta  = 0.01;
   
   printf("seed  = %d\n", seed);
