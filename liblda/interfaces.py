@@ -10,7 +10,6 @@ class LdaModelABC(object):
                       len: numT   or  constant scalar
         beta        : Dirichlet prior on phi (words in topics)
 
-
     Input data:
         corpus      : reference to a corpus object (anything that looks like [[ (termid,count) ]]
         numDocs     : len(corpus)

@@ -136,9 +136,17 @@ class NewmanLdaModel(interfaces.LdaModelABC):
             seed = 777
         self.seed = seed
 
+        self.mkrundir(rundir)
+        self.copy_topicmodel(rundir)
+        self.write_corpus_to_docword(rundir)
+        self.run(rundir,iter,seed)
+        self.load_probs(rundir)
 
 
 
+
+
+    def mkrundir(self,rundir):
         # sort out the rundir
         if not rundir:
             # ok so we will generate one
@@ -150,16 +158,19 @@ class NewmanLdaModel(interfaces.LdaModelABC):
         assert os.path.exists(rundir), "rundir doesn't exist!"
         self.rundir = rundir    # tag it onto the LdaModel while we are at it
 
+    def copy_topicmodel(self, rundir):
         # move topicmodel binary into place
         binary = os.path.join(topicmodel_DIR,"topicmodel")
         assert os.path.exists(binary), "topicmodel binary doesn't exist."
         shutil.copy(binary,rundir)
 
+    def write_corpus_to_docword(self, rundir):
         # write corpus to docwords...
         dwfile = os.path.join(rundir,"docword.txt")
         newman_topicmodel.NewmanWriter.writeCorpus(dwfile, self.corpus)
         assert os.path.exists(dwfile), "docword.txt doesn't exist."
 
+    def run(self,rundir,iter,seed):
         # cd to rundir
         os.chdir(rundir)
 
@@ -184,6 +195,7 @@ class NewmanLdaModel(interfaces.LdaModelABC):
         ###### CALLING STOPS  ######################################################
 
 
+    def load_probs(self,rundir):
         # read Nwt.txt
         fname1 = os.path.join(rundir,"Nwt.txt")
         Nwt=newman_topicmodel.loadsparsemat(fname1)   # teruns an array of counts

@@ -101,7 +101,7 @@ class NewmanWriter(object):
 
 
     @staticmethod
-    def writeCorpus(fname, corpus, progressCnt = 1000):
+    def writeCorpus(fname, corpus, progressCnt = 10000):
         """
         Save the vector space representation of an entire corpus to disk.
 
