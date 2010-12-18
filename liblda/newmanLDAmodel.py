@@ -60,8 +60,9 @@ class NewmanLdaModel(interfaces.LdaModelABC):
         numDocs     : len(corpus)
 
     Optional input:
-        vocab       : ref to Vacabulary object (which can map word id to word string)
-        numTerms    : len(vocab)
+        vocab       : ref to Vacabulary object  #calV
+                      (which can map word id to word string)
+        numTerms    : len(vocab) #V
 
     API:
         corpus=[[(1,1),(2,4)],[(1,1)]]
