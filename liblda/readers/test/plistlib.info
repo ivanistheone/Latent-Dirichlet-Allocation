@@ -1,0 +1,156 @@
+
+
+no no
+
+use the command line utility
+plutil
+
+...
+
+
+OR this 
+
+path = os.getcwd()+"/"+"safari_saved.webloc"
+from Cocoa import NSMutableDictionary
+d=NSMutableDictionary.dictionaryWithContentsOfFile_(path)
+d.objectForKey_("URL")
+
+thanks to http://prowiki.isc.upenn.edu/wiki/Manipulating_Plists
+
+
+
+
+
+
+
+http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/PropertyLists/QuickStartPlist/QuickStartPlist.html#//apple_ref/doc/uid/10000048i-CH4-SW6
+
+and 
+
+http://stackoverflow.com/questions/2346463/trying-to-write-to-binary-plist-format-from-python-w-pyobjc-to-be-fetch-and-rea
+
+
+from Cocoa import NSArray, NSData, NSPropertyListSerialization, NSPropertyListBinaryFormat_v1_0
+
+from Cocoa import NSUTF8StringEncoding, NSASCIIStringEncoding
+from Cocoa import NSPropertyListMutableContainersAndLeaves
+
+from Cocoa import NSString
+
+
+pl = NSString.stringWithContentsOfFile_encoding_error_(path, NSASCIIStringEncoding, None)
+
+
+a= NSPropertyListSerialization.propertyListFromData_mutabilityOption_format_errorDescription_(pl[0], NSPropertyListMutableContainersAndLeaves, NSPropertyListBinaryFormat_v1_0, NULL) 
+
+
+
+
+http://hints.macworld.com/comment.php?mode=view&cid=113949
+
+
+It's amazing that, in 2009, Apple continues to push it's non-standard/non-cross-platform extended file attributes and army of hidden meta-data dot-files.
+
+Anyway, in my quest to share data from webloc files with colleagues on PCs, using DropBox, I found this post and the follow-up comments very useful. Below is a script that suits my needs:
+
+   1. Converts .webloc to .url and generates .url files recursively
+   2. Deals with webloc data stored:
+          * In Resource Forks.
+          * As XML P-Lists.
+          * As binary P-lists. 
+   3. Save Page titles in URL file and URL file name. 
+
+My script makes use of some handy *nix shell commands, including: find, basename, dirname, test, tr, sed, and grep.
+Unfortunately, this script also makes use of Apple's Dev Tools scripts: DeRez and plutil.
+
+Here is how I run the script to recursively find all webloc files and overwrite existing URL files:
+$ find . -iname *.webloc -exec ~/ConvertWeblocToURL.sh -y \{\} \;
+
+To not overwrite existing URL file (handy for cron or periodic jobs):
+$ find . -iname *.webloc -exec ~/ConvertWeblocToURL.sh -n \{\} \;
+
+Source of "ConvertWeblocToURL.sh":
+
+
+#!/bin/bash
+
+if [[ $# -eq 2 ]] ; then
+    OVERWRITE_FLAG="${1}"
+    INPUT_FILE_NAME="${2}"
+    RESOURCE_FORK="${INPUT_FILE_NAME}/..namedfork/rsrc"
+    BASE=`basename -s ".webloc" "${INPUT_FILE_NAME}"`
+    DIR=`dirname "${INPUT_FILE_NAME}"`
+    URL_FILE_NAME="${DIR}/${BASE}.url"
+    FILE_FORMAT_ERROR=0
+
+    if [[ ( -e "${URL_FILE_NAME}" ) && ( "${OVERWRITE_FLAG}" != "-y" ) ]] ; then
+            echo "Not Overwriting Existing file: "${URL_FILE_NAME}""
+    else
+            # Check to see if Resource Fork has size != 0
+            if test -s "${RESOURCE_FORK}" ; then
+                    # echo "I have a fork and need de-forking"
+                    URL=`DeRez -e -only 'url ' "$INPUT_FILE_NAME" | grep '\/\* .* \*\/' | sed 's/^.*\/\* //;s/ \*\/$//' | tr -d '\n'`
+            else
+                    # echo "I have NO fork but need XML parsing."
+                    URL=`cat "${INPUT_FILE_NAME}" | grep -i '<string>.*<\/string>' | sed 's/^.*<string>//;s/<\/string>$//'`
+                    # If URL initially comes back blank, then good chance the webloc is binary plist.
+                    if [[ -z "${URL}" ]] ; then
+                            # Convert binary plist to XML and try again
+                            plutil -convert xml1 "${INPUT_FILE}"
+                            URL=`cat "${INPUT_FILE_NAME}" | grep -i '<string>.*<\/string>' | sed 's/^.*<string>//;s/<\/string>$//'`
+                            if [[ -z "${URL}" ]] ; then
+                                    FILE_FORMAT_ERROR=1
+                            fi
+                    fi
+            fi                                                                                           
+            if [[ ${FILE_FORMAT_ERROR} -eq 0 ]] ; then
+                    echo "[${BASE}]" > "${URL_FILE_NAME}"
+                    echo "URL=${URL}" >> "${URL_FILE_NAME}"
+                    echo "Creating file: "${URL_FILE_NAME}""
+            else
+                    echo "ERROR. Unfamiliar webloc file format, "${BASE}".webloc"
+            fi
+    fi
+else
+    echo " "
+    echo "Incorrect Number of Arguments."
+    echo " "
+    echo "Usage: ConvertWeblocToURL.sh -[yn] filename.webloc"
+    echo " "
+    echo "-y    Overwrite existing URL files."
+    echo "-n    Do not overwrite existing URL files."
+    echo " "
+    echo "This script always retains the original .webloc file."
+    echo "If the original webloc is a binary P-List, it converts"
+    echo "the webloc file to an XML P-list."
+    echo ""
+    echo "Requires Apple Developer Tools: plutil, DeRez."
+fi
+</code></pre>
+     
+
+
+    [ Reply to This |    # ]
+   
+  
+
+Easy conversion of multiple Safari .webloc to PC .url files
+Authored by: mkarau on Nov 23, '09 06:44:37AM
+One note. One edit.
+
+   1. Note: Worked perfectly with my VirtualBox machines, but a real-world WinXP install suffered from a Windows bug in processing the URL files. http://support.microsoft.com/kb/936881
+   2. The Fix. Windows likes a final CarriageReturn+LineFeed at the end of the URL file. Once added and once WinXP has been "Hotfixed", all works smoothly. In the DropBox world, IE and Firefox on the PC will update the URL file with other details like icon and other meta-data. Thankfully, this does not break the link functionality on the Mac.
+
+
+                if [[ ${FILE_FORMAT_ERROR} -eq 0 ]] ; then
+                        echo "[${BASE}]" > "${URL_FILE_NAME}"
+                        echo "URL=${URL}" >> "${URL_FILE_NAME}"
+
+                        echo "" >> "${URL_FILE_NAME}"
+
+                        echo "Creating file: "${URL_FILE_NAME}""
+                else
+                        echo "ERROR. Unfamiliar webloc file format, "${BASE}".webloc"
+                fi
+
+
