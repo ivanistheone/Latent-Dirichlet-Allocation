@@ -101,6 +101,9 @@ def get_sparse_for_alpha(alpha, nrange=None, recomendalpha=False):
 
     #alpha = 0.01
 
+    # allow alpha to be non-uniform...
+    # plot to see what happens
+
     if not nrange:
         nrange = numpy.arange(DIR_DIM_START, DIR_DIM_STOP,1, dtype=float)
 
@@ -137,7 +140,7 @@ def get_sparse_for_alpha(alpha, nrange=None, recomendalpha=False):
 
 
 
-def plot_reults( res ):
+def plot_results( res ):
     """
     given a matrix of sparseness features
     one in each row, plots a 3D figure with it
@@ -166,7 +169,11 @@ def plot_reults( res ):
     #ax.set_zlabel('prop of vectors of dim n with this sparsity')
     #ax.
 
-    #fig.add_axes(ax)
+    # fig.add_axes(ax)
+
+    p.xlabel('Dirichlet dimension')
+    p.xlabel('# entries that contain 95% of prob')
+    p.title('Sparseness of dirichlet distribution (prior)' )
 
     p.show()
 
@@ -177,6 +184,15 @@ def plot_reults( res ):
 # plot_reults(mrecommend)
 # prior around small window... is this desired?
 
+
+
+# how important is the prior?
+# shouldn't it expect certain # of topics AND less
+# why does it have to be such a narrow window?
+
+# \alpha uniform seems to be mostly one corridor ...
+# can you derive the slope of the line analytically?????
+#
 
 
 
