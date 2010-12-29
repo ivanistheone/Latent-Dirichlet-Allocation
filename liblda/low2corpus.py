@@ -36,10 +36,14 @@ class Low2Corpus(interfaces.CorpusABC):
         self.infile = infile    # input file, see class doc for format
         self.id2word = id2word
         self.word2id = word2id
-        self.numDocs = None     # we will not know until we reach the end...
+        self.numDocs = None                    # we will not know until we reach the end...
+        self.finished_counting = False
 
     def __len__(self):
-        return self.numDocs
+        if not self.finished_counting:
+            return 0
+        else:
+            return self.numDocs
 
 
     def __bool__(self):
@@ -108,7 +112,14 @@ class Low2Corpus(interfaces.CorpusABC):
 
             # return the document, then forget it and move on to the next one
             # note that this way, only one doc is stored in memory at a time, not the whole corpus
+            if not self.finished_counting:
+                if self.numDocs == None:
+                    self.numDocs = 0
+                self.numDocs = self.numDocs + 1
             yield counts
+
+        self.finished_counting = True
+
 
 
 #endclass Low2Corpus

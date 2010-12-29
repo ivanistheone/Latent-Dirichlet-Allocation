@@ -1,12 +1,13 @@
 # things i need to run each time I stary ipython
-import numpy, scipy
+import numpy as np
+import scipy as sp
 import os,sys
 
 # INSTALLED APPS ;)
 ####################################
 
 # original gensim
-sys.path.insert(1, '/Projects/LatentDirichletAllocation/gensim/trunk/src')
+sys.path.insert(1, '/Projects/LatentDirichletAllocation/')
 from gensim import corpora, models, similarities
 
 # ldalib
