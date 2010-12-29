@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
   Ndt = dmat(D,T);
   Nt  = dvec(T);  
 
-  alpha = 0.1; // run0014
+  alpha =  0.05 * N / (D * T);  //original
+            //0.1; // run0014
             // 0.5   // run0013
             // 0.05 * N / (D * T);  //original
   beta  = 0.01;
