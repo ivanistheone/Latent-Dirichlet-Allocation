@@ -6,14 +6,12 @@ import os,sys
 # INSTALLED APPS ;)
 ####################################
 
+sys.path.insert(1, '/Projects/LatentDirichletAllocation/')
+
 # original gensim
-sys.path.insert(1, '/Projects/LatentDirichletAllocation/')
 from gensim import corpora, models, similarities
-
 # ldalib
-sys.path.insert(1, '/Projects/LatentDirichletAllocation/')
 import liblda
-
 
 # settings file with RUNDIRS path, topicmodel location and PROJECT_HOME
 # from liblda import settings ?

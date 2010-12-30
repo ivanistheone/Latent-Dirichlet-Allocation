@@ -204,7 +204,46 @@ class LdaModel(interfaces.LdaModelABC):
         Allocates memory for the arrays of counts which
         will be necessary for the Gibbs sampler
         """
-        pass
+
+        tmp = np.array([3,1,4,5, 4.6])
+
+        extra_code = """
+           // line 209 in LDAmodel.py
+           double *dvec(int n) //
+           {
+             double *x = (double*)calloc(n,sizeof(double));
+             assert(x);
+             return x;
+           }
+
+        """
+
+        code = """
+           // line ~214 in LDAmodel.py
+
+           int i, n;
+           double *vec;
+
+           n=5;
+           vec = dvec(n);
+
+           for (i=0; i<n; i++) {
+                vec[i]=(double)i;
+
+           }
+
+           //printf("The last entry in the list is %f", vec[n-1]);
+
+           free(vec);
+
+
+        """
+
+        err = sp.weave.inline( code,
+                               ['tmp' ],
+                               support_code=extra_code,
+                               compiler='gcc')
+        return err
 
     def random_initialize(self):
         pass
