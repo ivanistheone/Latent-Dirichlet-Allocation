@@ -41,9 +41,12 @@ class Low2Corpus(interfaces.CorpusABC):
 
     def __len__(self):
         if not self.finished_counting:
-            return 0
-        else:
-            return self.numDocs
+            # ok so must be the first time __len__ is ever called
+            # iterate through it (doing nothing) and the numDocs and totalNwords will be computed
+            for d in self:
+                pass
+        # ok now numDocs is available
+        return self.numDocs
 
 
     def __bool__(self):
@@ -107,7 +110,7 @@ class Low2Corpus(interfaces.CorpusABC):
                 d[wid]=d.get(wid,0)+1
             counts = sorted(tuple(d.iteritems()),key=operator.itemgetter(0) )
 
-            if lineNo % 100000 == 0:
+            if lineNo % 1000000 == 0:
                 logging.info("done with docid " + str(lineNo))
 
             # return the document, then forget it and move on to the next one
