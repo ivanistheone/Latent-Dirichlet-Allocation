@@ -176,6 +176,7 @@ class LdaModel(interfaces.LdaModelABC):
 
         # subfunctions
         self.allocate_arrays()
+        self.read_dw_alphabetical()
         self.random_initialize()
         self.gibbs_sample(iter=self.iter, seed=self.seed )
         self.load_probs()
@@ -265,6 +266,7 @@ class LdaModel(interfaces.LdaModelABC):
             for w,cntw in doc:
                 # word w occurs cntw times in doc
                 # so have to loop put that many copies of it
+            # SLICE assignment faster?
                 for i in range(0,cntw):
                     self.w[offset+i]  = w
                     self.d[offset+i]  = curdoc
@@ -290,13 +292,15 @@ class LdaModel(interfaces.LdaModelABC):
         #Thu 30 Dec 2010 20:24:05 EST
 
         ntot = len(self.z)  # = N  = totalNwords
+
+        self.z = np.random.randint(0, high=self.numT, size=ntot)
+
         for i in range(0,ntot):
 
             # pick a random topic
-            t = int( np.random.rand()*self.numT )
 
             # set it to current token, and
-            self.z[i] = t
+            t = self.z[i]
             self.ztot[t] +=1
 
             # update wp and dp via the self.d and self.w lookup tables

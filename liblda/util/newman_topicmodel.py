@@ -401,6 +401,7 @@ def conv_Ndt_to_theta(input):
 
     numDocs,numT = input.shape
 
+    input = numpy.array( input, dtype=numpy.float )
 
     normalizer = 1.0/numpy.sum(input,1)     # 1 / total num of words in each topic
     for t in numpy.arange(0,numT):
@@ -430,6 +431,8 @@ def conv_Nwt_to_phi(input):
     """
 
     numTerms,numT = input.shape
+
+    input = numpy.array( input, dtype=numpy.float )
 
     prob_w_given_t = numpy.dot(input, numpy.diag(1/numpy.sum(input,0))  )
 
