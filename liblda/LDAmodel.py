@@ -101,7 +101,7 @@ class LdaModel(interfaces.LdaModelABC):
                                             # and has cached its length ...
 
         # optional
-        if not vocab:
+        if not vocab and not hasattr(corpus, 'word2id'):
             # then we need to go thgouh corpus and see how many different terms are used
             # assume corpus used sequential term-ids so just find the max value
             maxTermID = 0
@@ -114,6 +114,9 @@ class LdaModel(interfaces.LdaModelABC):
             self.vocab =    None
                 # or setup a dummy vocab like
                 # self.vocab = dict( (id,str(id)) for id in range(0,self.numTerms) )
+        elif not vocab and corpus.word2id:
+            self.numTerms = len(corpus.word2id)
+
         else:
             self.vocab    = vocab
             self.numTerms = len(vocab)
@@ -192,7 +195,8 @@ class LdaModel(interfaces.LdaModelABC):
         if hasattr(self.corpus, "totalNwords") and self.corpus.totalNwords != None:
             return self.corpus.totalNwords
 
-        else:   # corpus is not smart so must go through it
+        else:
+            # corpus is not smart so must go through it
             total=0L
             for doc in self.corpus:
                 for word,cnt in doc:
@@ -268,7 +272,7 @@ class LdaModel(interfaces.LdaModelABC):
                 # so have to loop put that many copies of it
             # SLICE assignment faster?
                 for i in range(0,cntw):
-                    self.w[offset+i]  = w
+                    self.w[offset+i]  = w-1
                     self.d[offset+i]  = curdoc
                 offset += int(cntw)
 
@@ -294,6 +298,9 @@ class LdaModel(interfaces.LdaModelABC):
         ntot = len(self.z)  # = N  = totalNwords
 
         self.z = np.random.randint(0, high=self.numT, size=ntot)
+        self.ztot.fill(0)
+        self.wp.fill(0)
+        self.dp.fill(0)
 
         for i in range(0,ntot):
 
@@ -308,7 +315,7 @@ class LdaModel(interfaces.LdaModelABC):
             self.dp[self.d[i]][t] += 1
 
             if DEBUG and i % (ntot/20) ==0:
-                print "progress %d/20 ..." % i
+                print "progress %d/20 ..." % int((i*20)/ntot)
 
 
 
@@ -389,6 +396,7 @@ class LdaModel(interfaces.LdaModelABC):
         debug2 = np.zeros( 100 , dtype=np.float64)
 
 
+        logger.info("Starting scipy.weave Gibbs sampler")
 
 
         code = """  // gibbs_sample C weave code  ///////////////////// START /////
@@ -417,7 +425,7 @@ class LdaModel(interfaces.LdaModelABC):
             }
             sumbeta  = 0.0;
             for(term=0; term<numTerms; term++) {
-                sumbeta += alpha[term];
+                sumbeta += beta[term];
             }
 
 
@@ -438,6 +446,17 @@ class LdaModel(interfaces.LdaModelABC):
 
             probs = dvec(N);
 
+
+
+            // LETs see what-a-gwan- ooon --- the problem was the sumbeta calc above !!!
+            printf("alpha[0]=%f alpha[1]=%f ... alpha[numT-1]=%f \\n", alpha[0], alpha[1], alpha[numT-1] );
+            printf("beta[0]=%f beta[1]=%f ... beta[numTerms-1]=%f \\n", beta[0], beta[1], beta[numTerms-1] );
+
+            printf("# of iterations = iter = %d\\n", iter);
+
+
+
+
             for(itr=0; itr<iter; itr++) {
 
                 for(i=0; i<N; i++) {
@@ -455,15 +474,30 @@ class LdaModel(interfaces.LdaModelABC):
                     // fill up   probs = P(z| ...)
                     sumprz = 0.0;
                     for( t=0; t<numT; t++){
-                        prz = (wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(dp[doc_id*T+t] + alpha[t]);
+                            /* in case of debug
+                            printf("doc_id: %d \\n", doc_id);
+                            printf("w_id: %d \\n", w_id);
+                            printf("t: %d \\n", t);
+                            printf("wp[w_id][t] = %d \\n", wp[w_id*T+t]);
+                            printf("dp[doc_id][t] = %d \\n", wp[doc_id*T+t]);
+                            printf("ztot[t] = %d \\n", ztot[t] );
+                            printf("sumbeta: %f \\n", sumbeta);
+                            */
+                        prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(dp[doc_id*T+t] + alpha[t]);
                         probs[t] = prz;
                         sumprz  += prz;
 
-                        //printf("Cur prob is eval at: %f", prz);
+                        //if (isnan(prz) ) {
+                        //    printf("Current prob: %f \\n", prz);
+                        //    printf("-----------------------------------------------------\\n");
+                        //}
+
                     }
 
                     //sample from probs
                     U = sumprz * drand48();
+                    //    printf("max sample val: %f \\n", sumprz);
+                    //    printf("sample: %f \\n", U);
                     currprob = probs[0];
                     newt = 0;
                     while( U > currprob){
@@ -473,6 +507,7 @@ class LdaModel(interfaces.LdaModelABC):
                     // TODO: bin_search -- up in support code
 
 
+                    //printf("newt: %d \\n", newt);
                     // increment back up  all counts
                     z[i] = newt;
                     dp[doc_id*T + newt]++;
@@ -506,26 +541,12 @@ class LdaModel(interfaces.LdaModelABC):
                 'iter', 'seed',     # gibbs specific params
                 'debug', 'debug2' ],          #
                support_code=extra_code,
+               headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
                compiler='gcc')
 
         return out
 
 
-
-    def wpdt_to_probs(self):
-        """
-                self.wp   ==> self.Nwt  ==> self.phi
-                self.dp   ==> self.Ndt  ==> self.theta
-        """
-        # read Nwt.txt
-        #self.Nwt = Nwt
-        # make into normalized probability distirbution
-        self.phi = newman_topicmodel.conv_Nwt_to_phi(wp)
-
-        # read Ndt
-        #self.Ndt = Ndt
-        # make into normalized probability distirbution
-        self.theta = newman_topicmodel.conv_Ndt_to_theta(dp)
 
 
 
@@ -549,73 +570,53 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
+    def conv_dp_to_theta(self):
+        """
+        converts the topic counts per document in self.dp
+        to a probability distibution
+          p(t|d)
+        rows are documents
+        columns are topic proportions
+        """
+        numDocs,numT = self.dp.shape
+        input = np.array( self.dp, dtype=np.float )
+
+        # add alpha
+        # TODO: add alpha ?
+
+        normalizer = 1.0/np.sum(input,1)     # 1 / total num of words in each topic
+        for t in np.arange(0,numT):
+            input[:,t]=input[:,t]*normalizer
+
+        self.theta = input.transpose()
 
 
-    def mkrundir(self,rundir):
-        # sort out the rundir
-        if not rundir:
-            # ok so we will generate one
-            if not rundir_root:
-                rundir_root=RUNDIRS_ROOT
-            rundir = rungen.mk_next_rundir(rundir_root)
+    def conv_wp_to_phi(self):
+        """
+        convers number of words in topic counts
+        to a probability distibution
+          p(w|t)
+        rows are topics
+        columns are word likelyhoods
+        """
 
-        # ok so we have a rundir now
-        assert os.path.exists(rundir), "rundir doesn't exist!"
-        self.rundir = rundir    # tag it onto the LdaModel while we are at it
-
-    def copy_topicmodel(self, rundir):
-        # move topicmodel binary into place
-        binary = os.path.join(topicmodel_DIR,"topicmodel")
-        assert os.path.exists(binary), "topicmodel binary doesn't exist."
-        shutil.copy(binary,rundir)
-
-    def write_corpus_to_docword(self, rundir):
-        # write corpus to docwords...
-        dwfile = os.path.join(rundir,"docword.txt")
-        newman_topicmodel.NewmanWriter.writeCorpus(dwfile, self.corpus)
-        assert os.path.exists(dwfile), "docword.txt doesn't exist."
-
-    def run(self,rundir,iter,seed):
-        # cd to rundir
-        os.chdir(rundir)
+        numTerms,numT = self.wp.shape
+        input = np.array( self.wp, dtype=np.float )
+        # TODO: add beta???
+        prob_w_given_t = np.dot(input, np.diag(1/np.sum(input,0))  )
+        self.phi = prob_w_given_t.transpose()
 
 
-        # get the party started
-        logger.info("Starting Newman's Gibbs sampler")
-        #logger.info("Starting run in  "+ rundir )
-
-        runcommand = os.path.join(rundir,"topicmodel") +" "+str(self.numT)+" "+str(iter)+" "+str(seed)
-        logger.info("run command: "+runcommand )
-
-        ###### CALLING STARTS  #####################################################
-        start_time = datetime.datetime.now()
-        (out,err)  = subprocess.Popen(runcommand, shell=True, \
-                                                   stdout=subprocess.PIPE, \
-                                                   stderr=subprocess.PIPE \
-                                                   ).communicate()
-
-        end_time = datetime.datetime.now()
-        duration = (end_time-start_time).seconds
-        logger.info("run duration: "+str(duration)+" seconds")
-        ###### CALLING STOPS  ######################################################
+    def wpdt_to_probs(self):
+        """
+                self.wp   ==> self.Nwt  ==> self.phi
+                self.dp   ==> self.Ndt  ==> self.theta
+        """
+        self.conv_dp_to_theta()
+        self.conv_wp_to_phi()
 
 
-    def load_probs(self,rundir):
-        # read Nwt.txt
-        fname1 = os.path.join(rundir,"Nwt.txt")
-        Nwt=newman_topicmodel.loadsparsemat(fname1)   # teruns an array of counts
-        self.Nwt = Nwt
-        # make into normalized probability distirbution
-        self.phi = newman_topicmodel.conv_Nwt_to_phi(Nwt)
 
-        # read Ndt
-        fname2 = os.path.join(rundir,"Ndt.txt")
-        Ndt=newman_topicmodel.loadsparsemat(fname2)   # teruns an array of counts
-        self.Ndt = Ndt
-        # make into normalized probability distirbution
-        self.theta = newman_topicmodel.conv_Ndt_to_theta(Ndt)
-
-        logger.info("Done loading LDA model (phi,theta) from files" )
 
 
 

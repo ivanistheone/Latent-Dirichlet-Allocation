@@ -37,14 +37,11 @@ class Low2Corpus(interfaces.CorpusABC):
         self.id2word = id2word
         self.word2id = word2id
         self.numDocs = None                    # we will not know until we reach the end...
-        self.finished_counting = False
+        self.totalNwords = None
 
     def __len__(self):
-        if not self.finished_counting:
-            # ok so must be the first time __len__ is ever called
-            # iterate through it (doing nothing) and the numDocs and totalNwords will be computed
-            for d in self:
-                pass
+        if not self.numDocs:
+            self.doCounts()
         # ok now numDocs is available
         return self.numDocs
 
@@ -87,6 +84,40 @@ class Low2Corpus(interfaces.CorpusABC):
         self.word2id  = word2id
         self.id2word  = id2word
 
+    def doCounts(self):
+        """
+        populate the fields
+         self.numDocs
+         self.totalNwords
+        this could be expensive for large corpora....
+        """
+
+        # return the document, then forget it and move on to the next one
+        # note that this way, only one doc is stored in memory at a time, not the whole corpus
+        ndocs = 0
+        nwords = 0L
+        terms = {}
+        for doc in self:
+            ndocs += 1
+            for word, cnt in doc:
+                nwords += cnt
+                terms[word]=1
+
+        self.numDocs = ndocs
+        self.totalNwords = nwords
+
+        #assert self.numTerms == len(terms)
+
+
+    def setVocabFromList(self, wlist):
+        """
+        given a list of words (strings), sets it to vocab
+         id2word and word2id
+
+        """
+        self.id2word = dict( enumerate(wlist) )
+        self.word2id = dict( [(word,id)  for id,word in self.id2word.items()] )
+        self.numTerms = len(self.id2word)
 
 
     def __iter__(self):
@@ -113,16 +144,7 @@ class Low2Corpus(interfaces.CorpusABC):
             if lineNo % 1000000 == 0:
                 logging.info("done with docid " + str(lineNo))
 
-            # return the document, then forget it and move on to the next one
-            # note that this way, only one doc is stored in memory at a time, not the whole corpus
-            if not self.finished_counting:
-                if self.numDocs == None:
-                    self.numDocs = 0
-                self.numDocs = self.numDocs + 1
             yield counts
-
-        self.finished_counting = True
-
 
 
 #endclass Low2Corpus
