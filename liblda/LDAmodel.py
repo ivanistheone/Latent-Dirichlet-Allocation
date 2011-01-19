@@ -16,12 +16,15 @@ from liblda import interfaces
 
 
 # can be removed?
-from liblda.util import rungen
-from liblda.util import newman_topicmodel
-import subprocess
+#from liblda.util import rungen
+#from liblda.util import newman_topicmodel
+#import subprocess
+#import shutil
+
+
 # shouldn't be necessary
 from local_settings import PROJECT_PATH, topicmodel_DIR, RUNDIRS_ROOT
-import shutil
+
 import datetime
 
 
@@ -83,7 +86,7 @@ class LdaModel(interfaces.LdaModelABC):
                       size: numDocs x numT
                       alias: prob_t_given_d
         z           : the topic assignment
-                      size: ?
+                      size: totalNwords x 1
 
     """
 
@@ -159,11 +162,14 @@ class LdaModel(interfaces.LdaModelABC):
         Runs a Gibbs sampler similar to Dave Newman's C code.
 
         1/ Create work arrays
-        2/ Initialize to random topic assignment
+            1.1/ Allocate memory
+            1.2/ Load the indicator lists self.w and self.d from corpus
+        2/ Initialize to random topic assignment --> self.z
         3/ Gibbs sample
         4/ Set self.phi, self.theta and self.z from the Nwt and Ndt arrays
-                     Nwt.txt,  Ndt.txt,  z.txt
-                     p(w|t)    p(t|d)    Z_{d_i,w_j}
+                     Nwt.txt,   Ndt.txt,    z.txt
+                     wp         dp
+                     ~p(w|t)    ~p(t|d)     Z_{d_i,w_j}
 
         """
         if not self.numT:
@@ -182,8 +188,8 @@ class LdaModel(interfaces.LdaModelABC):
         self.read_dw_alphabetical()
         self.random_initialize()
         self.gibbs_sample(iter=self.iter, seed=self.seed )
-        self.load_probs()
-        self.deallocate_arrays()
+        self.wpdt_to_probs()
+        #self.deallocate_arrays()
 
     def countN(self):
         """ Count the total number of words in corpus
@@ -263,10 +269,11 @@ class LdaModel(interfaces.LdaModelABC):
                         read_dw_prebow ?
         """
 
+        logger.info("Loading corpus into self.w and self.d")
+
         offset = 0          # running pointer through self.z, self.d
         curdoc=0            # current document id
         for doc in self.corpus:
-
             for w,cntw in doc:
                 # word w occurs cntw times in doc
                 # so have to loop put that many copies of it
@@ -278,36 +285,38 @@ class LdaModel(interfaces.LdaModelABC):
 
             curdoc += 1
 
+        logger.info("Done loading corpus")
+
 
 
 
     def random_initialize(self):
         """
-        The ease of writing this funciton is the main reason
-        why I wanted to code all this up in python.
-        Lets see if numpy is "really" that efficient for scientific exploration.
+        Goes through `self.z` and assigns random choice of topic for
+        each of the tokens in each of the documents.
 
-        on your marks, get set: r!date
-        Thu 30 Dec 2010 20:09:30 EST
+        The ranzom choices of `z` are also accounted for in `ztot`, `wp` and `dp`.
+
+        TODO: rewrite in C -- it is kind of slow now.
         """
 
 
-        # ok now really starting -- had to creat read_dw_alphabetical first
-        #Thu 30 Dec 2010 20:24:05 EST
+        logger.info("Random assignment of topic indicator variable self.z started")
 
         ntot = len(self.z)  # = N  = totalNwords
 
+        # pick list of random topics
         self.z = np.random.randint(0, high=self.numT, size=ntot)
+
+        # reflect the `z` choice in the other arrays
         self.ztot.fill(0)
         self.wp.fill(0)
         self.dp.fill(0)
-
         for i in range(0,ntot):
 
-            # pick a random topic
+            t = self.z[i]        # set it to current token, and
 
-            # set it to current token, and
-            t = self.z[i]
+            # update total count topic occurence
             self.ztot[t] +=1
 
             # update wp and dp via the self.d and self.w lookup tables
@@ -317,23 +326,17 @@ class LdaModel(interfaces.LdaModelABC):
             if DEBUG and i % (ntot/20) ==0:
                 print "progress %d/20 ..." % int((i*20)/ntot)
 
-
-
-
         assert sum(self.ztot) == ntot
 
-        # finished....
-        #Thu 30 Dec 2010 20:34:39 EST
 
-        # OK and perhaps this is the BEAUTY of python
-        # i just tried to run the code... and it runs... and I looked
-        # around with the interpreter and seems to be all OK
-        # done at Thu 30 Dec 2010 20:38:07 EST
-        # 14 mins is decent ...
+        logger.info("Random assignment of self.z done")
 
 
 
     def gibbs_sample(self, iter=None, seed=None ):
+        """
+        Scipy.weave gibbs sampler called by train()
+        """
 
         extra_code = """
            // line 209 in LDAmodel.py
@@ -359,6 +362,9 @@ class LdaModel(interfaces.LdaModelABC):
 
 
         """
+
+
+        logger.info("Preparing numpy variables to be passed to the C code")
 
         # longs
         N        = int( self.corpus.totalNwords )  # will be long long in C ?
@@ -417,6 +423,8 @@ class LdaModel(interfaces.LdaModelABC):
             double sumalpha, sumbeta;
 
 
+            // seed the random num generator
+            srand48( seed );
 
             // calculate total alpha and beta values
             sumalpha = 0.0;
@@ -455,9 +463,9 @@ class LdaModel(interfaces.LdaModelABC):
             printf("# of iterations = iter = %d\\n", iter);
 
 
-
-
             for(itr=0; itr<iter; itr++) {
+
+                printf("itr = %d\\n", itr);
 
                 for(i=0; i<N; i++) {
 
@@ -544,6 +552,8 @@ class LdaModel(interfaces.LdaModelABC):
                headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
                compiler='gcc')
 
+        logger.info("Finished scipy.weave Gibbs sampler")
+
         return out
 
 
@@ -614,6 +624,9 @@ class LdaModel(interfaces.LdaModelABC):
         """
         self.conv_dp_to_theta()
         self.conv_wp_to_phi()
+
+        logger.info("Finished converting  wp  --> phi  and  dp --> theta ")
+
 
 
 
