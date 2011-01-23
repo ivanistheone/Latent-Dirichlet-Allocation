@@ -12,6 +12,7 @@ Use this script to check:
 
 from __future__ import with_statement # needed for python 2.5
 from fabric.api import *
+import sys
 
 # globals
 env.project_name = 'Latent-Dirichlet-Allocation'
@@ -44,9 +45,14 @@ def lab7():
 
 def finger():
     """ run finger on each host """
-    out=run("finger")
-    if "No one logged on" in out:
-        print "nobody on %(host)s" % env
+
+    try:
+        out=run("finger")
+        if "No one logged on" in out:
+            print "nobody on %(host)s" % env
+    except:
+        print "host %(host)s is unreachable"
+
 
 
 
