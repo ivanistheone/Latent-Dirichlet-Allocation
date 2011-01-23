@@ -120,6 +120,20 @@ class Low2Corpus(interfaces.CorpusABC):
         self.numTerms = len(self.id2word)
 
 
+    def setVocabFromDict(self, word2id):
+        """
+        given a dict of word-to-id mappings sets up:
+         id2word and word2id
+
+        """
+
+        assert type(word2id)==type({})
+
+        self.word2id = word2id
+        self.id2word = dict( [(int(id),word)  for word,id in self.word2id.items()] )
+        self.numTerms = len(self.word2id)
+
+
     def __iter__(self):
         """
         Iterate over the corpus, returning one bag-of-words vector at a time.

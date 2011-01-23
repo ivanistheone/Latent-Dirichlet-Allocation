@@ -465,7 +465,7 @@ class LdaModel(interfaces.LdaModelABC):
 
             for(itr=0; itr<iter; itr++) {
 
-                printf("itr = %d\\n", itr);
+                //printf("itr = %d\\n", itr);
 
                 for(i=0; i<N; i++) {
 
@@ -591,14 +591,22 @@ class LdaModel(interfaces.LdaModelABC):
         numDocs,numT = self.dp.shape
         input = np.array( self.dp, dtype=np.float )
 
-        # add alpha
-        # TODO: add alpha ?
 
-        normalizer = 1.0/np.sum(input,1)     # 1 / total num of words in each topic
+        #                    N_td   + alpha[t]
+        #  p(t|d)     =  - ----------------------
+        #                 sum_t N_td   + sumalpha
+
+        sumalpha=np.sum(self.alpha)
+        totWinDocs = np.sum(input,1)
+        denom= totWinDocs + sumalpha
+
+        normalizer = 1.0/denom
         for t in np.arange(0,numT):
-            input[:,t]=input[:,t]*normalizer
+            input[:,t]=(input[:,t]+self.alpha[t])*normalizer
+        self.theta = input
+        # i think this is the same as
+        # (input + np.ones( (numT,numT))*alpha) * normalizer ... ;)
 
-        self.theta = input.transpose()
 
 
     def conv_wp_to_phi(self):
@@ -612,8 +620,20 @@ class LdaModel(interfaces.LdaModelABC):
 
         numTerms,numT = self.wp.shape
         input = np.array( self.wp, dtype=np.float )
-        # TODO: add beta???
-        prob_w_given_t = np.dot(input, np.diag(1/np.sum(input,0))  )
+
+        #                    N_wt   + beta[w]
+        #  p(w|t)     =  - ----------------------
+        #                 sum_w N_wt   + sumbeta
+        sumbeta = np.sum(self.beta)
+        ztot = np.sum(input,0)      # total number of words in corpus for topic t
+        denom = ztot + sumbeta
+
+        betarows = np.resize( self.beta, (numT,len(self.beta)) )  # numpy makes multiple copies of array on resize
+        betacols = betarows.transpose()
+
+        withbeta = input + betacols
+
+        prob_w_given_t = np.dot(withbeta, np.diag(1.0/denom) )
         self.phi = prob_w_given_t.transpose()
 
 
@@ -628,6 +648,25 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Finished converting  wp  --> phi  and  dp --> theta ")
 
 
+    def loglike(self):
+        """
+        Compute the log likelyhood of the corpus
+        under current `phi` and `theta` distributions
+
+        assumes that accessing the corpus is expensive
+        so goes though the lists `self.w` and `self.d` instead
+
+        if corpus is in RAM also, then more efficient to use term_counts
+        """
+        sum=0.0
+        for i in range(0,self.corpus.totalNwords):
+            sum += np.log( np.inner( self.phi[:,self.w[i]], self.theta[self.d[i],:] ) )
+        return sum
+
+
+    def perplexity(self):
+        """ Compute the perplexity of corpus = exp( - loglike / totalNwords ) """
+        return np.exp( -1.0*self.loglike()/self.corpus.totalNwords )
 
 
 
