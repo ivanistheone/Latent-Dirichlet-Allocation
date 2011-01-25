@@ -51,7 +51,7 @@ class NewMmCorpus(matutils.MmReader, interfaces.CorpusABC):
             for word, cnt in doc:
                 nwords += cnt
                 terms[word]=1
-        self.totalNwords = double(nwords)
+        self.totalNwords = long(nwords)
 
 
     def setVocabFromList(self, wlist):
