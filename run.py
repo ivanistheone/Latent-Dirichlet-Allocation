@@ -5,6 +5,9 @@
 import os,sys
 import logging
 logging.basicConfig(format = '%(asctime)s : %(levelname)s : %(message)s', level = logging.INFO)
+logger = logging.getLogger('lda-run')
+logger.setLevel(logging.INFO)
+
 
 try:
     import json as simplejson
@@ -83,6 +86,18 @@ RUNDIRS_ROOT = os.path.join(PROJECT_PATH, "../runs/")
 
 
 
+# FILENAMES for storing run output
+RUN_FILENAMESS = {  "dp":"Ndt.npy",
+                    "wp":"Nwt.npy",
+                    "z":"z.npy",
+                    "phi":"phi.npy",
+                    "theta":"theta.npy",
+                    "alpha":"alpha.npy",    # the whole alpha array = prior on p(t|d) distribution
+                                            # if missing look in output.json["alpha"][0]
+                                            # [1] contains the variance of alpha vector
+                    "beta":"beta.npy"       # prior on p(w|t) distr.
+                                            # same as output.json["beta"][0]  if constant
+                 }
 
 
 # this is the main work horse !
@@ -110,6 +125,7 @@ def run(args):
     import scipy as sp
 
 
+    # display what run got in args
     for tup in args.__dict__.iteritems():
         print tup
 
@@ -117,7 +133,7 @@ def run(args):
     # LOAD VOCAB
     if args.vocab_file[-5:]==".json":
         vjson = simplejson.load(open(args.vocab_file,'r'))
-        vocab = vjson
+        _ocab = vjson
     elif args.vocab_file[-4:]==".txt":       # one word per line
         vfile = open(args.vocab_file, 'r')
         wlist = [w.strip() for w in vfile.readlines() ]
@@ -144,9 +160,6 @@ def run(args):
     else:
         print "Corpus format not recognized"
         sys.exit(-1)
-
-    print vocab
-    print list(corpus)
 
 
 
@@ -180,7 +193,7 @@ def run(args):
     input["corpus"]=args.docs_file
     input["vocab"]=args.vocab_file
     input["alpha"]=args.alpha
-    input["beta"]=args.beta
+    input["beta"]= args.beta
     input["seed"]=args.seed
     input["host_id"]=host_id
     # and write it to disk
@@ -194,13 +207,78 @@ def run(args):
     lda.train(iter=args.iter, seed=args.seed )
 
 
-    # save Gibbs sampler state
 
 
-    # Prepare json output
 
+
+
+
+
+    # save word counts and topic assignment counts (these are sparse)
+    state = ["dp", "wp", "alpha", "beta" ]
+    for var_name in state:
+        f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+        np.save( f_name, lda.__getattribute__(var_name) )
+    logger.info("Done writing out Nwt+beta, Ndt+alpha")
+
+    # Gibbs sampler state, which consists of
+    # the full  topic assignments "z.npy"
+    if args.save_z:
+        var_name="z"
+        f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+        np.save( f_name, lda.__getattribute__(var_name) )
+        logger.info("Done writing out z.npy")
+
+    # save probs
+    if args.save_probs:
+        probs = ["phi", "theta"]
+        for var_name in probs:
+            f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+            np.save( f_name, lda.__getattribute__(var_name) )
+        logger.info("Done writing out probabilities phi.npy and theta.npy")
+
+
+
+    # prepare a dict which will become output.json
+    output = {}
+    output["rundir"]=rundir
+    output["host_id"]=host_id
+    output["seed"]=lda.seed
+    # corpus info
+    output["corpus"]=args.docs_file
+    output["vocab"]=args.vocab_file
+    output["numDocs"] = lda.numDocs
+    output["numTerms"] = lda.numTerms
+    output["totalNterms"] = lda.corpus.totalNwords
+    # model parameters
+    output["numT"]=lda.numT
+    # the hyperparameters are too long to store in full here,
+    # use separate .npy files if alpha/beta non uniform
+    output["alpha"]=[np.average(lda.alpha), float(np.cov(lda.alpha)) ]  # [avg, var]
+    output["beta"]=[np.average(lda.beta), float(np.cov(lda.beta)) ]  # [avg, var]
     #
+    # calculate likelyhood
+    output["loglike"]=lda.loglike()
+    output["perplexity"]=lda.perplexity()   # = np.exp( -1 * loglike() / totalNwords )
+    logger.info("Log likelyhood: %f" % output["loglike"] )
+    logger.info("Perplexity: %f" % output["perplexity"] )
+    #
+    # and write it to disk
+    f=open( os.path.join(rundir, "output.json"), "w" )
+    simplejson.dump( output, f, indent=0 )
+    f.close()
+    logger.info("Done saving output.json")
 
+
+    if args.print_topics:
+        from liblda.topicviz.show_top import show_top
+        top_words_in_topics = show_top(lda.phi, num=args.print_topics, corpus=lda.corpus)
+        for topic in top_words_in_topics:
+            words = ", ".join(topics)
+            print words
+
+
+    logger.info("Done! --> thank you come again")
 
 
 
@@ -235,11 +313,16 @@ if __name__=="__main__":
     parser.add_argument('--beta', type=float,
                         help="Specify uniform prior on phi (words in topics)")
 
-    parser.add_argument('--rundirsroot',
+    parser.add_argument('--rundirs_root',
                         help="Parent folder where runs are to be stored")
 
-    parser.add_argument('--save-z', action='store_true', default=False, dest="save-z",
-                        help='save z.npy pickle (the topic assignments for each word in corpus) (large file!) ')
+    parser.add_argument('--save_z', action='store_true', default=False, dest="save_z",
+                        help='save z.npy (the topic assignments for each word in corpus) (large file!) ')
+    parser.add_argument('--save_probs', action='store_true', default=False, dest="save_probs",
+                        help='save phi.npy and theta.npy. These can be produced from Nwt.npy+beta.npy ' + \
+                             'and Ndt.py+alpha.npy respectively (probs are large files since not sparse) ')
+    parser.add_argument('--print_topics', type=int, default=None,
+                        help='Print top words in each topic that was learned.')
 #    parser.add_argument('--corpus-format',
 #                        help="Specify different corpus format, ex: lines-of-words, newman_docword, ... default: .mm matrix market")
 #    parser.add_argument('--vocab-format',
