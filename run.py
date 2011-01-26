@@ -140,7 +140,6 @@ def run(args):
         id2word = dict( enumerate(wlist) )
         word2id = dict( [(word,id)  for id,word in id2word.items()] )
         vocab = word2id
-        print "id of quantum is", word2id["quantum"]
     else:
         print "Vocab format not recognized"
         sys.exit(-1)
@@ -203,11 +202,21 @@ def run(args):
     f.close()
 
 
+
+
+    start_time = datetime.datetime.now()
+
+
+
     # setup the lda model
     lda = LdaModel( numT=args.numT,    alpha=args.alpha, beta=args.beta,  corpus=corpus, vocab=vocab )
+
+    # train it
     lda.train(iter=args.iter, seed=args.seed )
 
-
+    # record how long it took
+    end_time = datetime.datetime.now()
+    duration = (end_time-start_time).seconds
 
 
 
@@ -216,11 +225,12 @@ def run(args):
 
 
     # save word counts and topic assignment counts (these are sparse)
-    state = ["dp", "wp", "alpha", "beta" ]
-    for var_name in state:
-        f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
-        np.save( f_name, lda.__getattribute__(var_name) )
-    logger.info("Done writing out Nwt+beta, Ndt+alpha")
+    if args.save_counts:    # TRUE by default
+        state = ["dp", "wp", "alpha", "beta" ]
+        for var_name in state:
+            f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+            np.save( f_name, lda.__getattribute__(var_name) )
+        logger.info("Done writing out Nwt+beta, Ndt+alpha")
 
     # Gibbs sampler state, which consists of
     # the full  topic assignments "z.npy"
@@ -242,9 +252,16 @@ def run(args):
 
     # prepare a dict which will become output.json
     output = {}
+    # run details
     output["rundir"]=rundir
     output["host_id"]=host_id
     output["seed"]=lda.seed
+    output["start_time"]=start_time.isoformat()  # ISO format string
+                                    # to read ISO time stamps use dateutil
+                                    #>>> from dateutil import parser
+                                    #>>> parser.parse("2011-01-25T23:36:43.373248")
+                                    # datetime.datetime(2011, 1, 25, 23, 36, 43, 373247)
+    output["duration"]=int(duration)
     # corpus info
     output["corpus"]=args.docs_file
     output["vocab"]=args.vocab_file
@@ -327,6 +344,8 @@ if __name__=="__main__":
     parser.add_argument('--save_probs', action='store_true', default=False, dest="save_probs",
                         help='save phi.npy and theta.npy. These can be produced from Nwt.npy+beta.npy ' + \
                              'and Ndt.py+alpha.npy respectively (probs are large files since not sparse) ')
+    parser.add_argument('--save_counts' action='store_true', default=True, dest="save_counts",
+                        help='save Nwt.npy and Ndt.py  (True by default since they are relatively sparse) ')
     parser.add_argument('--print_topics', type=int, default=None,
                         help='Print top words in each topic that was learned.')
 #    parser.add_argument('--corpus-format',
