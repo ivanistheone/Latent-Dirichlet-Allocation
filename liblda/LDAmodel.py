@@ -369,6 +369,11 @@ class LdaModel(interfaces.LdaModelABC):
         # longs
         N        = int( self.corpus.totalNwords )  # will be long long in C ?
 
+            # FIXME!!!
+            # This will not work if total n words in corpus is greater than 4 bytes
+            # on a 32bit machine (like in SOCS)
+            # C code is fine -- it uses long long which always turns out to be 8 bytes
+
         # ints
         numT     = int( self.numT )
         numDocs  = int( self.numDocs )

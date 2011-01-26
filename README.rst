@@ -20,15 +20,16 @@ Here is a small example of how to use liblda
   * Run the lda model
 
 ::
-  ./run.py \
-  --docs liblda/test/arXiv_docs.txt \
-  --vocab liblda/test/arXiv_vocab.txt \
-  --numT 20 \
-  --seed 3 \
-  --iter 300 \
-  --alpha 0.01 \
-  --beta 0.01 \
-  --save_z --save_probs --print_topics 12
+
+    ./run.py \
+    --docs liblda/test/arXiv_docs.txt \
+    --vocab liblda/test/arXiv_vocab.txt \
+    --numT 20 \
+    --seed 3 \
+    --iter 300 \
+    --alpha 0.01 \
+    --beta 0.01 \
+    --save_z --save_probs --print_topics 12
 
 
 
@@ -38,6 +39,7 @@ Yeah more info as we I know...
 You can also use the LdaModel class in your own code.
 
 ::
+
     import sys
     sys.path.insert(1, '/Projects/LatentDirichletAllocation/')  
     from gensim import corpora, models, similarities
