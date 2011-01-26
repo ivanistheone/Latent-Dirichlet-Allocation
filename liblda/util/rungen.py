@@ -22,6 +22,8 @@ def mk_next_rundir(rundir_root=None):
         rundir_root=RUNDIRS_ROOT
 
     contents = os.listdir(rundir_root)
+    contents = sorted( contents )
+
 
     # get max directory number
     max = 0         # biggest rundir number

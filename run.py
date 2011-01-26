@@ -274,6 +274,11 @@ def run(args):
     if args.print_topics:
         from liblda.topicviz.show_top import show_top
         top_words_in_topics = show_top(lda.phi, num=args.print_topics, corpus=lda.corpus)
+        print "id of word quantum ", lda.corpus.word2id["quantum"]
+        print "word associated w id 0 (first word) ", lda.corpus.id2word[0]
+        print "id of word quantum ", lda.corpus.word2id["hilbertspace"]
+        print "word associated with last id 10010 ", lda.corpus.id2word[lda.numTerms-1]
+
         for topic in top_words_in_topics:
             words = ", ".join(topic)
             print words
