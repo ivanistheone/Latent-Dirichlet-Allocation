@@ -274,7 +274,7 @@ def run(args):
         from liblda.topicviz.show_top import show_top
         top_words_in_topics = show_top(lda.phi, num=args.print_topics, corpus=lda.corpus)
         for topic in top_words_in_topics:
-            words = ", ".join(topics)
+            words = ", ".join(topic)
             print words
 
 
