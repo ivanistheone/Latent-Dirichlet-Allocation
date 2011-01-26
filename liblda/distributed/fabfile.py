@@ -40,7 +40,24 @@ def lab7():
 # Fatal error: Timed out trying to connect to lab7-11.cs.mcgill.ca
 # how do you make this robust even if some hosts are unreachable?
 
+# TODO
+# make a @unreliable decorator to handle the try catch story below
+# any way to suppress the paramiko erros showing up in stdout ?
+
+
 # tasks
+
+def uptime():
+    """ run finger on each host """
+
+    try:
+        out=run("uptime")
+        print env.host
+        print out
+    except:
+        print "host %(host)s is unreachable" % env
+
+
 
 
 def finger():
@@ -48,13 +65,22 @@ def finger():
 
     try:
         out=run("finger")
+        print env.host
+        print out
+    except:
+        print "host %(host)s is unreachable" % env
+
+
+
+def nobody():
+    """ run finger on each host """
+
+    try:
+        out=run("finger")
         if "No one logged on" in out:
             print "nobody on %(host)s" % env
     except:
-        print "host %(host)s is unreachable"
-
-
-
+        print "host %(host)s is unreachable" % env
 
 
 def test():
