@@ -35,6 +35,7 @@ def mk_next_rundir(rundir_root=None):
             if count > max:
                 max=count
         except ValueError:
+            print "max is ", max
             continue
 
     new = count+1 # (if empty starts at run0001)

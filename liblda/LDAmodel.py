@@ -279,7 +279,7 @@ class LdaModel(interfaces.LdaModelABC):
                 # so have to loop put that many copies of it
             # SLICE assignment faster?
                 for i in range(0,cntw):
-                    self.w[offset+i]  = w-1
+                    self.w[offset+i]  = w   # IS THIS THE FIX??? OMG!
                     self.d[offset+i]  = curdoc
                 offset += int(cntw)
 

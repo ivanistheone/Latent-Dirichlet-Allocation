@@ -133,13 +133,14 @@ def run(args):
     # LOAD VOCAB
     if args.vocab_file[-5:]==".json":
         vjson = simplejson.load(open(args.vocab_file,'r'))
-        _ocab = vjson
+        vocab = vjson
     elif args.vocab_file[-4:]==".txt":       # one word per line
         vfile = open(args.vocab_file, 'r')
         wlist = [w.strip() for w in vfile.readlines() ]
         id2word = dict( enumerate(wlist) )
         word2id = dict( [(word,id)  for id,word in id2word.items()] )
         vocab = word2id
+        print "id of quantum is", word2id["quantum"]
     else:
         print "Vocab format not recognized"
         sys.exit(-1)
