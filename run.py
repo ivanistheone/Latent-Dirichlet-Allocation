@@ -4,6 +4,7 @@
 # general
 import os,sys
 import logging
+import datetime
 logging.basicConfig(format = '%(asctime)s : %(levelname)s : %(message)s', level = logging.INFO)
 logger = logging.getLogger('lda-run')
 logger.setLevel(logging.INFO)
@@ -344,7 +345,7 @@ if __name__=="__main__":
     parser.add_argument('--save_probs', action='store_true', default=False, dest="save_probs",
                         help='save phi.npy and theta.npy. These can be produced from Nwt.npy+beta.npy ' + \
                              'and Ndt.py+alpha.npy respectively (probs are large files since not sparse) ')
-    parser.add_argument('--save_counts' action='store_true', default=True, dest="save_counts",
+    parser.add_argument('--save_counts', action='store_true', default=True, dest="save_counts",
                         help='save Nwt.npy and Ndt.py  (True by default since they are relatively sparse) ')
     parser.add_argument('--print_topics', type=int, default=None,
                         help='Print top words in each topic that was learned.')
