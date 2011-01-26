@@ -7,10 +7,11 @@ def sizeof_C_explore():
     # quick check of what is happenign in C on my arch
     code = """
 
-       printf("The size of int is: %d", sizeof(int));
-       printf("The size of long is: %d", sizeof(long));
-       printf("The size of float is: %d", sizeof(float));
-       printf("The size of double is: %d", sizeof(double));
+       printf("The size of int is: %d\\n", sizeof(int));
+       printf("The size of long is: %d\\n", sizeof(long));
+       printf("The size of long long is: %d\\n", sizeof(long long));
+       printf("The size of float is: %d\\n", sizeof(float));
+       printf("The size of double is: %d\\n", sizeof(double));
 
     """
 
