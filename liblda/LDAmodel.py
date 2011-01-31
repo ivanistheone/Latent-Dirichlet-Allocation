@@ -545,17 +545,11 @@ class LdaModel(interfaces.LdaModelABC):
 
                        for(;;)
                        {
-                           if (bsmax < bsmin  )
-                           {
-                               printf("Shouldn't be here bro: %d \\n", bsmid);
-                               printf("bsmin: %d \\n", bsmin);
-                               printf("bsmax: %d \\n", bsmax);
-                               printf("Shouldn't be here bro: %d \\n", bsmid);
-                               break;
-                           }
                            bsmid =  (bsmin + bsmax) /2;
                            currprob = cumprobs[bsmid];
-                           if (  bsmid==0   &&    currprob >= U  )
+                           if (currprob  < U)
+                               bsmin = bsmid  + 1;
+                           else if (  bsmid==0   &&    currprob >= U  )
                            {
                              newt = 0;
                              break;
@@ -565,8 +559,6 @@ class LdaModel(interfaces.LdaModelABC):
                              newt = bsmid;
                              break;
                            }
-                           else if (currprob  < U)
-                               bsmin = bsmid  + 1;
                            else if (currprob >  U)
                                bsmax = bsmid - 1;
                            else
