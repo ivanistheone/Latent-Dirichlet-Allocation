@@ -28,6 +28,7 @@ from gensim import corpora, models, similarities    # original gensim
 import liblda                                       # ldalib
 from liblda.extlibs import argparse                 # for civilized command line options
 
+from liblda.math.dirichlet_sparse_stats import get_sparse_stats
 
 
 # data dirs
@@ -191,6 +192,7 @@ def run(args):
     input = {}
     input["rundir"]=rundir
     input["numT"]=args.numT
+    input["iter"]=args.iter
     input["corpus"]=args.docs_file
     input["vocab"]=args.vocab_file
     input["alpha"]=args.alpha
@@ -256,6 +258,7 @@ def run(args):
     # run details
     output["rundir"]=rundir
     output["host_id"]=host_id
+    output["iter"]=lda.iter
     output["seed"]=lda.seed
     output["start_time"]=start_time.isoformat()  # ISO format string
                                     # to read ISO time stamps use dateutil
@@ -273,8 +276,8 @@ def run(args):
     output["numT"]=lda.numT
     # the hyperparameters are too long to store in full here,
     # use separate .npy files if alpha/beta non uniform
-    output["alpha"]=[np.average(lda.alpha), float(np.cov(lda.alpha)) ]  # [avg, var]
-    output["beta"]=[np.average(lda.beta), float(np.cov(lda.beta)) ]  # [avg, var]
+    output["alpha"]= lda.alpha[0] #[np.average(lda.alpha), float(np.cov(lda.alpha)) ]  # [avg, var]
+    output["beta"]=  lda.beta[0]  #[np.average(lda.beta), float(np.cov(lda.beta)) ]  # [avg, var]
     #
     # calculate likelyhood
     output["loglike"]=lda.loglike()
@@ -282,20 +285,44 @@ def run(args):
     logger.info("Log likelyhood: %f" % output["loglike"] )
     logger.info("Perplexity: %f" % output["perplexity"] )
     #
-    # and write it to disk
+
+
+
+    # compute sparseness and write it out
+    sp = get_sparse_stats( lda.phi )
+    np.save(  os.path.join(rundir, "phi_sparseness.npy"), sp)
+    # report on sparseness statisitcs (assume single mode)
+    nz = sp.nonzero()[0]                        # get the nonzero entries
+    sp_avg = sum([sp[i]*i for i in nz])         # where are non-zero they concentrated ?
+    sp_var = sum( [sp[i]*np.abs(i-sp_avg)**2 for i in nz] )
+    sp_stdev = np.sqrt( sp_var )                # how concentrated they are around sp_avg
+    output["phi_sparseness_avg"]=sp_avg
+    output["phi_sparseness_stdev"]=sp_stdev
+    logger.info("Phi sparseness. center=%d, width=%d" % (int(sp_avg),int(sp_stdev))  )
+
+    # same for theta
+    sp = get_sparse_stats( lda.theta )
+    np.save( os.path.join(rundir, "theta_sparseness.npy"), sp)
+    # report on sparseness statisitcs (assume single mode)
+    nz = sp.nonzero()[0]                        # get the nonzero entries
+    sp_avg = sum([sp[i]*i for i in nz])         # where are non-zero they concentrated ?
+    sp_var = sum( [sp[i]*np.abs(i-sp_avg)**2 for i in nz] )
+    sp_stdev = np.sqrt( sp_var )                # how concentrated they are around sp_avg
+    output["theta_sparseness_avg"]=sp_avg
+    output["theta_sparseness_stdev"]=sp_stdev
+    logger.info("Theta sparseness. center=%d, width=%d" % (int(sp_avg),int(sp_stdev))  )
+
+    # write all output data to disk
     f=open( os.path.join(rundir, "output.json"), "w" )
     simplejson.dump( output, f, indent=0 )
     f.close()
     logger.info("Done saving output.json")
 
 
+
     if args.print_topics:
         from liblda.topicviz.show_top import show_top
-        top_words_in_topics = show_top(lda.phi, num=args.print_topics, corpus=lda.corpus)
-        print "id of word quantum ", lda.corpus.word2id["quantum"]
-        print "word associated w id 0 (first word) ", lda.corpus.id2word[0]
-        print "id of word quantum ", lda.corpus.word2id["hilbertspace"]
-        print "word associated with last id 10010 ", lda.corpus.id2word[lda.numTerms-1]
+        top_words_in_topics = show_top(lda.phi, num=args.print_topics, id2word=lda.corpus.id2word)
 
         for topic in top_words_in_topics:
             words = ", ".join(topic)
@@ -345,7 +372,7 @@ if __name__=="__main__":
     parser.add_argument('--save_probs', action='store_true', default=False, dest="save_probs",
                         help='save phi.npy and theta.npy. These can be produced from Nwt.npy+beta.npy ' + \
                              'and Ndt.py+alpha.npy respectively (probs are large files since not sparse) ')
-    parser.add_argument('--save_counts', action='store_true', default=True, dest="save_counts",
+    parser.add_argument('--dont_save_counts', action='store_false', default=True, dest="save_counts",
                         help='save Nwt.npy and Ndt.py  (True by default since they are relatively sparse) ')
     parser.add_argument('--print_topics', type=int, default=None,
                         help='Print top words in each topic that was learned.')
