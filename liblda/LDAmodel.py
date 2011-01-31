@@ -407,6 +407,8 @@ class LdaModel(interfaces.LdaModelABC):
         debug2 = np.zeros( 100 , dtype=np.float64)
 
 
+        buf = sys.stdout        # to try to get output of printf scrolling
+
         logger.info("Starting scipy.weave Gibbs sampler")
 
 
@@ -418,11 +420,14 @@ class LdaModel(interfaces.LdaModelABC):
 
             int t, k, oldt, newt;             // topic indices
             int w_id, term;              // index over words --
-            int doc_id;                 // index over documents
+            int doc_id;                  // index over documents
 
             int T;
 
             double *probs, prz, sumprz, currprob, U ;
+
+            double *cumprobs;           // new for binary search
+            int pidx;
 
 
             double sumalpha, sumbeta;
@@ -471,6 +476,7 @@ class LdaModel(interfaces.LdaModelABC):
             for(itr=0; itr<iter; itr++) {
 
                 //printf("itr = %d\\n", itr);
+                fprintf(buf, "itr = %d\\n", itr);
 
                 for(i=0; i<N; i++) {
 
@@ -517,7 +523,12 @@ class LdaModel(interfaces.LdaModelABC):
                         newt ++;
                         currprob += probs[newt];
                     }
-                    // TODO: bin_search -- up in support code
+
+                    // Binary search in cumprobs
+                    // find pidx s.t. cumpobs[newt] => U
+                    // and cumprobs[newt-1] < U  OR  newt=0
+                    //newt = 0;
+
 
 
                     //printf("newt: %d \\n", newt);
@@ -552,6 +563,7 @@ class LdaModel(interfaces.LdaModelABC):
                 'dp', 'wp',         #
                 'alpha', 'beta',    # Dirichlet priors of self.theta and self.phi respectively
                 'iter', 'seed',     # gibbs specific params
+                'buf',
                 'debug', 'debug2' ],          #
                support_code=extra_code,
                headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
