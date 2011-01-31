@@ -424,10 +424,12 @@ class LdaModel(interfaces.LdaModelABC):
 
             int T;
 
-            double *probs, prz, sumprz, currprob, U ;
+            // double *probs  ---> converted to cumprobs
+            double *cumprobs;                       // new
+            double prz, sumprz, currprob, U ;
+            int bsmin, bsmax, bsmid;                // for binary search
 
-            double *cumprobs;           // new for binary search
-            int pidx;
+
 
 
             double sumalpha, sumbeta;
@@ -462,7 +464,7 @@ class LdaModel(interfaces.LdaModelABC):
                 it could be cleaner but hey...
                 */
 
-            probs = dvec(N);
+            cumprobs = dvec(T);
 
 
 
@@ -490,7 +492,7 @@ class LdaModel(interfaces.LdaModelABC):
                     wp[  w_id*T + oldt]--;
                     ztot[oldt]--;
 
-                    // fill up   probs = P(z| ...)
+                    // fill up   cumprobs = CMF(  P(z| ...)  )
                     sumprz = 0.0;
                     for( t=0; t<numT; t++){
                             /* in case of debug
@@ -503,8 +505,8 @@ class LdaModel(interfaces.LdaModelABC):
                             printf("sumbeta: %f \\n", sumbeta);
                             */
                         prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(dp[doc_id*T+t] + alpha[t]);
-                        probs[t] = prz;
                         sumprz  += prz;
+                        cumprobs[t] = sumprz;
 
                         //if (isnan(prz) ) {
                         //    printf("Current prob: %f \\n", prz);
@@ -513,21 +515,67 @@ class LdaModel(interfaces.LdaModelABC):
 
                     }
 
+                                                            /* Old sampling code
+
+                                                            //sample from probs
+                                                            U = sumprz * drand48();
+                                                            //    printf("max sample val: %f \\n", sumprz);
+                                                            //    printf("sample: %f \\n", U);
+                                                            currprob = probs[0];
+                                                            newt = 0;
+                                                            while( U > currprob){
+                                                                newt ++;
+                                                                currprob += probs[newt];
+                                                            }
+
+                                                            */
+
+
                     //sample from probs
                     U = sumprz * drand48();
-                    //    printf("max sample val: %f \\n", sumprz);
-                    //    printf("sample: %f \\n", U);
-                    currprob = probs[0];
-                    newt = 0;
-                    while( U > currprob){
-                        newt ++;
-                        currprob += probs[newt];
-                    }
+
 
                     // Binary search in cumprobs
-                    // find pidx s.t. cumpobs[newt] => U
-                    // and cumprobs[newt-1] < U  OR  newt=0
-                    //newt = 0;
+                    // find index newt s.t. cumpobs[newt] => U
+                    // and cumprobs[newt-1] < U  OR  newt==0
+
+                       newt = 0;
+                       bsmin = 0;
+                       bsmax = numT-1;
+
+                       for(;;)
+                       {
+                           if (bsmax < bsmin  )
+                           {
+                               printf("Shouldn't be here bro: %d \\n", bsmid);
+                               printf("bsmin: %d \\n", bsmin);
+                               printf("bsmax: %d \\n", bsmax);
+                               printf("Shouldn't be here bro: %d \\n", bsmid);
+                               break;
+                           }
+                           bsmid =  (bsmin + bsmax) /2;
+                           currprob = cumprobs[bsmid];
+                           if (  bsmid==0   &&    currprob >= U  )
+                           {
+                             newt = 0;
+                             break;
+                           }
+                           else if (  cumprobs[bsmid-1]<U   &&  currprob >= U  )
+                           {
+                             newt = bsmid;
+                             break;
+                           }
+                           else if (currprob  < U)
+                               bsmin = bsmid  + 1;
+                           else if (currprob >  U)
+                               bsmax = bsmid - 1;
+                           else
+                           {
+                               printf("Shouldn't be here bro: %d \\n", bsmid);
+                               break;
+                           }
+                       }
+
 
 
 
@@ -541,7 +589,7 @@ class LdaModel(interfaces.LdaModelABC):
                     /*
 
                     for( t=0; t<numT; t++){
-                        debug2[t]=probs[t];
+                        debug2[t]=cumprobs[t];
                     }
 
                     */
@@ -550,7 +598,8 @@ class LdaModel(interfaces.LdaModelABC):
            }
 
 
-            free(probs);
+            free(cumprobs);
+
 
             //////////////////////////////////////////////////////////////  END ///
 
