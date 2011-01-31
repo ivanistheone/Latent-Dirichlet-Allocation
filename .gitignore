@@ -7,3 +7,6 @@ BLOG.txt
 data
 docs/papers
 
+liblda/test/ukwac-*
+liblda/topicviz/g.raphael/
+liblda/topicviz/raphael/
