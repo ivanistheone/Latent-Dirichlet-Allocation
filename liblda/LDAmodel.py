@@ -323,8 +323,8 @@ class LdaModel(interfaces.LdaModelABC):
             self.wp[self.w[i]][t] += 1
             self.dp[self.d[i]][t] += 1
 
-            if DEBUG and i % (ntot/20) ==0:
-                print "progress %d/20 ..." % int((i*20)/ntot)
+            if DEBUG and i % (ntot/20) ==0 and not i==0:
+                print "progress %d/20 ..." % int((i*20)/ntot +1)
 
         assert sum(self.ztot) == ntot
 
@@ -725,6 +725,64 @@ class LdaModel(interfaces.LdaModelABC):
     def perplexity(self):
         """ Compute the perplexity of corpus = exp( - loglike / totalNwords ) """
         return np.exp( -1.0*self.loglike()/self.corpus.totalNwords )
+
+
+
+    def seeded_initialize(self, seed_z):
+        """
+        Given a `z` vector from a previous LDA run, with topics assignments
+        varying between 0 and seed_numT-1, we set the values of `self.z`
+        to be a random "subtopics" of the original.
+
+        The ratio numT/seed_numT is called the expand_factor.
+
+        The ranzom choices of `z` are also accounted for in `ztot`, `wp` and `dp`.
+        """
+
+        logger.info("Seeded assignment of topic indicator variable self.z started")
+
+        ntot = len(self.z)  # = N  = totalNwords
+        seedntot = len(seed_z)  # = N  = totalNwords
+        assert ntot == seedntot, "Seed z.npy must be of same length as self.z"
+
+        # calculate the expand_factor
+        maxt = 0
+        for t in seed_z:
+            if t> maxt:
+                maxt=t
+        seed_numT = maxt + 1    # assumes all topics appear at least once
+        expand_factor = self.numT/seed_numT
+
+        # go through topic assignment list and assign to one of expand_factor subtopics
+        for i in range(0,ntot):
+            self.z[i] = expand_factor*seed_z[i]+ np.random.randint(0, expand_factor)
+
+        # pick list of random topics
+        #self.z = np.random.randint(0, high=self.numT, size=ntot)
+
+        # reflect the `z` choice in the other arrays
+        self.ztot.fill(0)
+        self.wp.fill(0)
+        self.dp.fill(0)
+        for i in range(0,ntot):
+
+            t = self.z[i]        # set it to current token, and
+
+            # update total count topic occurence
+            self.ztot[t] +=1
+
+            # update wp and dp via the self.d and self.w lookup tables
+            self.wp[self.w[i]][t] += 1
+            self.dp[self.d[i]][t] += 1
+
+            if DEBUG and i % (ntot/20) ==0:
+                print "progress %d/20 ..." % int((i*20)/ntot +1 )
+
+        assert sum(self.ztot) == ntot
+
+
+        logger.info("Seeded assignment of self.z done")
+
 
 
 

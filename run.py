@@ -214,8 +214,39 @@ def run(args):
     # setup the lda model
     lda = LdaModel( numT=args.numT,    alpha=args.alpha, beta=args.beta,  corpus=corpus, vocab=vocab )
 
-    # train it
-    lda.train(iter=args.iter, seed=args.seed )
+
+    # if not in seeded mode run as usual
+    if not args.seed_z_from:
+        lda.train(iter=args.iter, seed=args.seed )
+    # NEW: S
+    else:
+        logger.info("Using seeded z training ... ")
+
+        # training params
+        if not args.iter:
+            lda.iter = 50
+        else:
+            lda.iter = args.iter
+
+        if not args.seed:
+            seed = 777
+            lda.seed = 2*seed+1
+        else:
+            lda.seed = 2*args.seed + 1
+
+
+        # loadup the seed_z_from file into seed_z np array
+        seed_z = np.load( args.seed_z_from)
+
+        # custom train sequence
+        lda.allocate_arrays()
+        lda.read_dw_alphabetical()
+        #self.random_initialize()   # NO -- we want a seeded initialization!
+        lda.seeded_initialize(seed_z)
+        lda.gibbs_sample(iter=lda.iter, seed=lda.seed )
+        lda.wpdt_to_probs()
+        #self.deallocate_arrays()
+
 
     # record how long it took
     end_time = datetime.datetime.now()
@@ -353,6 +384,10 @@ if __name__=="__main__":
                         help="Number of topics.")
 
 
+    # for seeding one LDA run with the topic assignments
+    # of another LDA run on the same corpus
+    parser.add_argument('--seed_z_from', dest='seed_z_from',
+                        help='specify a saved topic assignment vector (z.npy) to use as seed')
 
     # these are optional
     parser.add_argument('--seed', type=int,
