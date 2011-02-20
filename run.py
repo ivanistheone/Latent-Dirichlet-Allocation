@@ -316,6 +316,10 @@ def run(args):
     logger.info("Log likelyhood: %f" % output["loglike"] )
     logger.info("Perplexity: %f" % output["perplexity"] )
     #
+    # special seeding info
+    if args.seed_z_from:
+        output["seed_z_from"]= args.seed_z_from
+    #
 
 
 
