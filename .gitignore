@@ -10,3 +10,8 @@ docs/papers
 liblda/test/ukwac-*
 liblda/topicviz/g.raphael/
 liblda/topicviz/raphael/
+
+liblda/topicviz/tmve_ajbchaney/lda-c-dist/
+liblda/topicviz/tmve_ajbchaney/ids_fold07.txt
+liblda/topicviz/tmve_ajbchaney/demo/
+liblda/topicviz/tmve_ajbchaney/arXiv_demo/
