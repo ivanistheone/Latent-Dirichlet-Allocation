@@ -2,6 +2,9 @@ import numpy as np
 from liblda.math.distances import JSdiv
 
 
+from liblda.extlibs import munkres
+
+
 
 def getCostMatrix2(th, th_t):
     """ computes the KL divergence (actually JS) between
@@ -108,15 +111,57 @@ def find_closest(phi, phi_t):
     return mapping
 
 
-def hungarianAlgorithm(topics_A, topics_B):
-    """ returns a mapping
-        the optimal matching between the two distributions of the same size
-        ( (0,3), (1,4), ... , )
-        which means topicA0 is best matched to topicB3, etc...
-
-        see: http://en.wikipedia.org/wiki/Hungarian_algorithm
+def hungarian_algorithm(cost_matrix, mapping_only=False):
     """
-    pass
+        inputs:     A matrix of distances ( either d_\Theta or d_\Phi )
+                    cost_matrix[i][j] is some measure of how different
+                    topic i is from topic j.
+
+        outputs:    A triple of the form
+                    (rows_unused, mapping, cols_unused)
+                    where mapping is of the form
+                      [(0, m(0)), (1, m(1)), ...   ]
+                    where `m` is the minimum cost matching of rows to columns.
+
+                    If the cost_matrix is square then the _unused  will be empty,
+                    else they will contain the elements that were not used by the mapping.
+
+        I decided to use the code from:
+            https://github.com/bmc/munkres
+
+        For algo description see:
+            http://en.wikipedia.org/wiki/Hungarian_algorithm
+
+    """
+
+    # if cost_matrix specified as some non-numpy array of array format
+    # like a list of lists for example we should convert:
+    if not type(cost_matrix) == type(np.array([1])):
+        cost_matrix =  np.array( cost_matrix )
+
+    nrows, ncols = cost_matrix.shape
+    allrows = set(range(0,nrows))
+    allcols = set(range(0,ncols))
+
+    halgo = munkres.Munkres()
+
+    indices = halgo.compute( cost_matrix.tolist()  )    # algo assumes list of lists
+
+    usedrows, usedcols = zip(*indices)      # i am sorry but I have to show off
+                                            # my newly learned python kung fu
+
+    rows_unused = sorted(list(  allrows - set(usedrows)  ))
+    cols_unused = sorted(list(  allcols - set(usedcols)  ))
+
+    if mapping_only:
+        return indices
+    else:
+        return (rows_unused, indices, cols_unused)
+
+
+
+
+
 
 
 
