@@ -111,6 +111,80 @@ from liblda.LDAmodel import LdaModel
 
 
 
+import types
+
+
+
+
+
+
+
+# Errors accociated with this
+class ListInputError(Exception):
+    """
+    The user supplied a bad list file
+    """
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
+
+
+
+
+
+
+
+
+
+def smart_list_reader( fname ):         #,  items_type=None):
+    """ Tries to read a filename and return an iterable.
+        Supported formats are:
+            comma separated list of words ALL ON ONE LINE
+            one item per line
+            numpyarray np.save( ...
+            the keys of a pickled dict cPickle.dump ( {"item1":[some metadata for item1], "item2":[meta2], ... } )
+
+        Returned list for .txt formats will be a list of strings, so if you know
+        that items should be ints of floats you have to convert by yourself.
+    """
+
+    items = None
+
+    if fname.endswith(".json"):         # Q? Can we guarantee order is preserved in json serialization?
+        file = open(fname, 'r')
+        vjson = simplejson.load(file)
+        items = vjson
+    elif fname.endswith(".txt"):
+        file = open(fname, 'r')
+        lines = file.readlines()
+
+        if len(lines)==2 and lines[1].strip()=='':   # handle newline at EOL just in case
+            items = [ it.strip() for it in  lines[0].split(",") ]
+        elif len(lines)==1:
+            items = [ it.strip() for it in  lines[0].split(",") ]
+        else:
+            items = [l.strip() for l in lines if len(l.strip())>0 ]
+    elif fname.endswith(".npy"):
+        loaded = np.load(fname)
+        if loaded.shape == ():      # handles a dict saved by numpy
+            maybe_items = loaded.item()
+            if type(maybe_items) == types.DictType:
+                items = maybe_items.keys()
+            elif type(maybe_items) == types.ListType:
+                items = maybe_items
+        else:
+            items = loaded
+    else:
+        raise ListInputError("List file type not recognized")
+
+
+    return items
+
+
+
+
+
 
 
 
@@ -133,18 +207,15 @@ def run(args):
 
 
     # LOAD VOCAB
-    if args.vocab_file[-5:]==".json":
-        vjson = simplejson.load(open(args.vocab_file,'r'))
-        vocab = vjson
-    elif args.vocab_file[-4:]==".txt":       # one word per line
-        vfile = open(args.vocab_file, 'r')
-        wlist = [w.strip() for w in vfile.readlines() ]
-        id2word = dict( enumerate(wlist) )
-        word2id = dict( [(word,id)  for id,word in id2word.items()] )
-        vocab = word2id
-    else:
+    wlist = smart_list_reader( args.vocab_file )
+    if not wlist:
         print "Vocab format not recognized"
         sys.exit(-1)
+    # convert from list [term1, term2, ...] to dicts
+    # [term1:0, term2:1, ... ] and the inverse mapping
+    id2word = dict( enumerate(wlist) )
+    word2id = dict( [(word,id)  for id,word in id2word.items()] )
+    vocab = word2id
 
 
     # SETUP CORPUS (LAZY)
@@ -187,6 +258,7 @@ def run(args):
 
     # create a new (sequential) rundir for this host
     rundir = rungen.mk_next_rundir(host_rundirs_root)
+    logger.info("rundir: " + rundir  )
 
     # prepare a dict which will become input.json
     input = {}
@@ -237,12 +309,17 @@ def run(args):
 
         # loadup the seed_z_from file into seed_z np array
         seed_z = np.load( args.seed_z_from)
+        if args.expand_factors:
+            expand_factors_str = smart_list_reader( args.expand_factors )
+            expand_factors = np.array( [int(i) for i in expand_factors_str ] )
+        else:
+            expand_factors = None    # let lda.seeded_initialize() handle it
 
         # custom train sequence
         lda.allocate_arrays()
         lda.read_dw_alphabetical()
         #self.random_initialize()   # NO -- we want a seeded initialization!
-        lda.seeded_initialize(seed_z)
+        lda.seeded_initialize(seed_z, expand_factors )
         lda.gibbs_sample(iter=lda.iter, seed=lda.seed )
         lda.wpdt_to_probs()
         #self.deallocate_arrays()
@@ -319,7 +396,8 @@ def run(args):
     # special seeding info
     if args.seed_z_from:
         output["seed_z_from"]= args.seed_z_from
-    #
+    if args.expand_factors:
+        output["expand_factors"]= args.expand_factors
 
 
 
@@ -392,6 +470,8 @@ if __name__=="__main__":
     # of another LDA run on the same corpus
     parser.add_argument('--seed_z_from', dest='seed_z_from',
                         help='specify a saved topic assignment vector (z.npy) to use as seed')
+    parser.add_argument('--expand_factors', dest='expand_factors',
+                        help='a file contaning a list that specifies into how many subtopics each seed topic should be split')
 
     # these are optional
     parser.add_argument('--seed', type=int,

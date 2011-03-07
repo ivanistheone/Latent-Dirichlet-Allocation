@@ -728,7 +728,7 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
-    def seeded_initialize(self, seed_z):
+    def seeded_initialize(self, seed_z, expand_factors):
         """
         Given a `z` vector from a previous LDA run, with topics assignments
         varying between 0 and seed_numT-1, we set the values of `self.z`
@@ -745,20 +745,33 @@ class LdaModel(interfaces.LdaModelABC):
         seedntot = len(seed_z)  # = N  = totalNwords
         assert ntot == seedntot, "Seed z.npy must be of same length as self.z"
 
-        # calculate the expand_factor
+        # calculate seed_numT
         maxt = 0
         for t in seed_z:
             if t> maxt:
                 maxt=t
         seed_numT = maxt + 1    # assumes all topics appear at least once
-        expand_factor = self.numT/seed_numT
 
-        # go through topic assignment list and assign to one of expand_factor subtopics
+        # setup uniform expand_factors if None is specified
+        if expand_factors is  None:
+            expand_factors = np.zeros(seed_numT, dtype=np.int)
+            unif_expand = int( self.numT/seed_numT )
+            for i in range(0,seed_numT-1):
+                expand_factors[i]= unif_expand
+            expand_factors[seed_numT-1] = self.numT - np.sum(expand_factors)
+
+
+        # do some checking
+        assert np.sum(expand_factors) == self.numT, "expand_factors must sum up to total of topics in new model"
+        assert len(expand_factors) == seed_numT, "must specify exactly one expand_factor per seed topic"
+
+
+        # go through topic assignment list and assign to one of expand_factors subtopics
+        shift_right_one = np.concatenate( (np.zeros(1), expand_factors) )
+        prev_expand = np.cumsum( shift_right_one )
         for i in range(0,ntot):
-            self.z[i] = expand_factor*seed_z[i]+ np.random.randint(0, expand_factor)
-
-        # pick list of random topics
-        #self.z = np.random.randint(0, high=self.numT, size=ntot)
+            seed_t = seed_z[i]
+            self.z[i] = prev_expand[seed_t] + np.random.randint(0, expand_factors[seed_t])
 
         # reflect the `z` choice in the other arrays
         self.ztot.fill(0)
