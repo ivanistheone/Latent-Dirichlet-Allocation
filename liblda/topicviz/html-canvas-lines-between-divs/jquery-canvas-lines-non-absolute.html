@@ -11,7 +11,14 @@
 		border:1px solid red;
 		top:0px;
 		left:0px;
+		z-index:11;
 	}
+	.foreground {
+		z-index: 10;	
+	
+	}
+	
+	
 	.fakeli {
 		width:0px;
 		height:0px;
@@ -20,17 +27,19 @@
 	}
 	.blk
 	{
-		opacity: 0.9;
+		/* opacity: 0.5; */
 		border:1px solid #000;
 		background:#fff;
-		/* position:absolute; */
-		padding: 5px;
-		z-index: 10
+		/* position:absolute; 
+		padding: 5px; 
+		*/
+		z-index: 10;
+
 	}
 	.blk h1, .blk ul, .blk li {
 		margin:0;
 		padding:0;
-		list-style:none
+		list-style:none;
 	}
 	#blk-a{
 
@@ -45,6 +54,50 @@
 		width:300px;
 	}
 
+	ol.oulinks {
+		display:inline;
+		list-style:none;
+		height:1em;
+
+	}
+
+	ol.oulinks li {
+		display:inline;
+		list-style:none;	
+		height:1em;
+		
+	}
+
+	li.supertopic {
+		display:block;
+		padding:10px;
+	} 
+
+
+	.supertopics ul li {
+		padding: 5px;
+		z-index: 10
+		opacity: 0.9;
+	}
+
+	span.supertopicname {
+		border:1px dotted red;
+	}
+	
+	#supertopics.tmve_layout {
+		width:300px;
+		float:left;
+		display:block;
+		margin-right:60px;
+		border:1px solid green;
+	}
+
+	#subtopics.tmve_layout {
+		width:600px;
+		float:left;
+		display:block;
+		border: 1px solid blue;
+	}
 	
 	</style>
 	<script type="text/javascript">
@@ -60,23 +113,35 @@
 		ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 		ctx.beginPath();
 		$(blkEls).each(function(){
-			$("li", this).each(function(){
+			$("li.outlink", this).each(function(){
 				var li=$(this);
 				if(li.attr("rel"))
 				{
 					var srcOffset=li.offset();
 					var srcMidHeight=li.height()/2;
-					var targetLi=$("#"+li.attr("rel"));
+					var targetLi=$("#"+li.attr("topicref"));
 					if(targetLi.length)
 					{
 						var trgOffset=targetLi.offset();
 						var trgMidHeight=li.height()/2;
+						
+						// set linewidth accordingly
+						//var lw_str = li.attr("linewidth");
+						//var lw = parseInt(lw_str,10);
+
+						//ctx.fillText(lw_str, 100,100);
+						
+						//ctx.lineWidth = lw;
+						
 						ctx.moveTo(srcOffset.left - cOffset.left, srcOffset.top - cOffset.top + srcMidHeight);
-						ctx.lineTo(trgOffset.left - cOffset.left, trgOffset.top - cOffset.top + trgMidHeight);
+						
+						ctx.lineTo(trgOffset.left - cOffset.left -10, trgOffset.top - cOffset.top + trgMidHeight);
+						
+						// display link strength						
 						target_x=trgOffset.left - cOffset.left;
 						target_y=trgOffset.top - cOffset.top + trgMidHeight;
-						w_str = li.attr("subtopicweight");
-						ctx.fillText(w_str, target_x-18,target_y-4);
+						var w_str = li.attr("subtopicweight");
+						ctx.fillText(w_str, target_x-30,target_y);
 					}
 				}
 			});
@@ -85,18 +150,109 @@
 		ctx.closePath();
 	}
 	
-	$(document).ready(function(){updateCanvas($("#canvas"), $(".blk"));});
+	$(document).ready(function(){updateCanvas($("#canvas"), $(".supertopic"));});
 	
 	</script>
 </head>
 <body>
 
-	<div id="supertopics" class="tmve_layout">
+	<div id="supertopics" class="tmve_layout blk">
 
-
-
-    <div id="blk-a" class="blk">
 		<h1>Topics</h1>
+	
+		<ul class="supertopics blk">
+		
+			<li class="supertopic blk" id="supertopic0" >
+				<span class="supertopicname">Topic 0</span>
+				<ol class="oulinks">
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic0" linewidth="5" subtopicweight="0.3" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic1" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic2" linewidth="1" subtopicweight="0.1" />
+				</ol>
+			</li>
+			
+			<li class="supertopic blk" id="supertopic1" >
+				<span class="supertopicname">Topic 1</span>
+				<ol class="oulinks">
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic1" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic2" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic3" linewidth="2" subtopicweight="0.2" />
+				</ol>
+			</li>	
+
+			<li class="supertopic" id="supertopic2" >
+				<span class="supertopicname">Topic 1</span>
+				<ol class="oulinks">
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic2" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic3" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic5" linewidth="1" subtopicweight="0.1" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic6" linewidth="2" subtopicweight="0.2" />
+				</ol>
+			</li>	
+
+			<li class="supertopic" id="supertopic3" >
+				<span class="supertopicname">Fourth topic</span>
+				<ol class="oulinks">
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic8" linewidth="2" subtopicweight="0.2" />
+					<li class="outlink" rel="tmve:subtopic" topicref="subtopic10" linewidth="2" subtopicweight="0.2" />
+				</ol>
+			</li>				
+		
+		</ul>
+		
+		
+	</div> 
+
+
+	<div id="subtopics" class="tmve_layout blk">
+
+		<h2>Subtopics</h2>
+	
+		<ul class="subtopics">
+		
+			<li class="subtopic" id="subtopic0" >
+				<span class="subtopicname">Subtopic 0</span>
+			</li>
+			<li class="subtopic" id="subtopic1" >
+				<span class="subtopicname">Subtopic 1</span>
+			</li>
+			<li class="subtopic" id="subtopic2" >
+				<span class="subtopicname">Subtopic 2</span>
+			</li>
+			<li class="subtopic" id="subtopic3" >
+				<span class="subtopicname">Subtopic 3</span>
+			</li>
+			<li class="subtopic" id="subtopic4" >
+				<span class="subtopicname">Subtopic 4</span>
+			</li>
+			<li class="subtopic" id="subtopic5" >
+				<span class="subtopicname">Subtopic 5</span>
+			</li>
+			<li class="subtopic" id="subtopic6" >
+				<span class="subtopicname">Subtopic 6</span>
+			</li>			
+			<li class="subtopic" id="subtopic7" >
+				<span class="subtopicname">Subtopic 7</span>
+			</li>			
+			<li class="subtopic" id="subtopic8" >
+				<span class="subtopicname">Subtopic 8</span>
+			</li>			
+			<li class="subtopic" id="subtopic9" >
+				<span class="subtopicname">Subtopic 9</span>
+			</li>						
+			<li class="subtopic" id="subtopic10" >
+				<span class="subtopicname">Subtopic 10</span>
+			</li>						
+
+		
+		</ul>
+		
+		
+	</div> 
+	
+	
+<!--
+    <div id="blk-a" class="blk">
 		<ul>
 			<li id="a" rel="d" subtopicweight="0.4">Hello</li>
 			<li id="b" rel="c">World</li>
@@ -116,6 +272,7 @@
 			<li id="d">Maailma</li>
 		</ul>
 	</div>
+-->
 	<canvas id="canvas"></canvas>
 </body>
 </html>
