@@ -15,22 +15,29 @@ import numpy as np
 
 
 
+#from scipy.stats.distributions import entropy as KLdiv
+# %psource spst.distributions.entropy
+def KLdiv(pk,qk):
+    """KL = KLdiv(pk,qk)
 
+    Then compute a relative entropy
+    KLdiv  = sum(pk * log(pk / qk), axis=0)
 
-from scipy.stats.distributions import entropy as KLdiv
-#scipy entropy can be called with two arguments gives relative entropy
-# = Kullback Liebler divergence
-#def KLdiv(prob_p, prob_q):
-#    """ Computes the KL distance betwen two distributions represented as
-#        two arrays of same length
-#
-#    """
-#
-#    #return np.sum( p*np.log(p/q) )
-#    #vec = np.where(
-#    # symmetrized version
-#    #return 0.5*sum(p*log(p/q)+q*log(q/p))
-#
+    Routine will NOT normalize pk and qk if they don't sum to 1
+    """
+    pk = np.array(pk, dtype=np.float)
+    qk = np.array(qk, dtype=np.float)
+    #pk = 1.0* pk / sum(pk,axis=0)
+    #qk = 1.0*qk / sum(qk,axis=0)
+    if len(qk) != len(pk):
+        raise ValueError, "qk and pk must have same length."
+    # If qk is zero anywhere, then unless pk is zero at those places
+    #   too, the relative entropy is infinite.
+    if np.any(np.take(pk,np.nonzero(qk==0.0),axis=0)!=0.0, 0):
+        return inf
+    vec = np.where (pk == 0, 0.0, pk*np.log(pk / qk))
+    return np.sum(vec,axis=0)
+
 
 
 
@@ -45,35 +52,3 @@ def JSdiv(prob_p, prob_q):
     return 0.5*KLdiv(p,m) + 0.5*KLdiv(q,m)
 
 
-
-# For reference
-#In [37]: %psource spst.distributions.entropy
-#def entropy(pk,qk=None):
-#    """S = entropy(pk,qk=None)
-#
-#    calculate the entropy of a distribution given the p_k values
-#    S = -sum(pk * log(pk), axis=0)
-#
-#    If qk is not None, then compute a relative entropy
-#    S = sum(pk * log(pk / qk), axis=0)
-#
-#    Routine will normalize pk and qk if they don't sum to 1
-#    """
-#    pk = arr(pk)
-#    pk = 1.0* pk / sum(pk,axis=0)
-#    if qk is None:
-#        vec = where(pk == 0, 0.0, pk*log(pk))
-#    else:
-#        qk = arr(qk)
-#        if len(qk) != len(pk):
-#            raise ValueError, "qk and pk must have same length."
-#        qk = 1.0*qk / sum(qk,axis=0)
-#        # If qk is zero anywhere, then unless pk is zero at those places
-#        #   too, the relative entropy is infinite.
-#        if any(take(pk,nonzero(qk==0.0),axis=0)!=0.0, 0):
-#            return inf
-#        vec = where (pk == 0, 0.0, -pk*log(pk / qk))
-#    return -sum(vec,axis=0)
-#
-#
-#
