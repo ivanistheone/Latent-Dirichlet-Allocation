@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{# expects doc_rtopic_list (list of doc objects),   doc_rtopic_list (a custom list for displaying percentage td's  #}
+
+{% block title %}Topics{% endblock %}
+
+{% block header %}
+<h1>{{tmv_title}} Documents</h1>
+<h2>Topic Distributions Per Document</h2>
+<hr noshade>
+{% endblock header %}
+
+{% block main %}
+<div id="graph">
+
+<table width="100.0%">
+<tr>
+<td width="50%">
+
+    {% for doc in document_list %}
+    <table width="100.0%">
+    <tr>
+        <td class="dark-hover">
+            <a title="{{ doc.meta.title}}" href="../docs/{{ doc.get_safe_title}}.html">{{ doc.title }}</a>
+        </td>
+    </tr>
+    </table>
+    
+    {% endfor %}        
+</td>
+<td class="bars">
+    {% for doc_rtopics in doc_rtopic_list %}
+    <table class="high-contrast-table" width="100.0%">
+    <tr>
+            {% for rtopic in doc_rtopics  %}
+            <td class="clickable" 
+                width="{{rtopic.percent}}%" 
+                title="{{rtopic.display_title}}" 
+                onclick="window.location.href='../topics/{{rtopic.link}}.html'">
+            </td>
+            {% endfor %}
+    </tr>
+    </table>
+    {% endfor %}
+</td></tr>
+</table>
+
+
+
+
+
+</div>
+{% endblock main %}
+
