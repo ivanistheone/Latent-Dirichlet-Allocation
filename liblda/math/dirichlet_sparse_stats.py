@@ -215,6 +215,18 @@ def get_sparse_for_alpha(alpha=None, alphaval=None, nrange=None, sample_size=Non
 
 
 
+def plot_dir_samples( dirsamples):
+    """ assume 3d
+
+    """
+    import mpl_toolkits.mplot3d.axes3d as p3
+    import pylab as p
+
+    fig = p.figure()
+    ax = p3.Axes3D(fig)
+    ax.scatter3D(dirsamples[:,0],dirsamples[:,1], dirsamples[:,2])
+    fig.show()
+
 
 def plot_results( res , case=""):
     """

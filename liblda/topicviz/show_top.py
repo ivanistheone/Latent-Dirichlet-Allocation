@@ -82,6 +82,21 @@ def show_top(phi, num=20, id2word=None):
 
 
 
+# one row version of the above
+def top_words_for_topic(phi, t,  num=20, id2word=None):
+    """
+    Given a p(w|t) distribution, returns the top `num` words
+    in topic `t`.
+    """
+    numT,numTerms = phi.shape
+    pw_gt = phi[t,:]
+    topwords = sorted(enumerate(pw_gt), key=operator.itemgetter(1), reverse=True)
+    words = [id2word[id] for id,prb in topwords[0:num] ]
+    return words
+
+
+
+
 if __name__=="__main__":
     """
     Take all kinds of inputs on command line

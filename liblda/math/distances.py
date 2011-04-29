@@ -13,6 +13,8 @@ but the JSdiv is good all the time.
 import numpy as np
 
 
+# entropy called w two args gives Rel-entropy = KLdiv
+from scipy.stats.distributions import entropy as spKLdiv
 
 
 #from scipy.stats.distributions import entropy as KLdiv
@@ -41,14 +43,19 @@ def KLdiv(pk,qk):
 
 
 
-def JSdiv(prob_p, prob_q):
+def JSdiv(prob_p, prob_q, normalize=True):
     """
     Jensen-Shannon divergence = symmetrized KL divergence
+
+    if given non-prob dist. then can also do unnormalized
     """
     p = prob_p
     q = prob_q
     m = (p+q)/2
 
-    return 0.5*KLdiv(p,m) + 0.5*KLdiv(q,m)
+    if normalize:
+        return 0.5*spKLdiv(p,m) + 0.5*spKLdiv(q,m)
+    else:
+        return 0.5*KLdiv(p,m) + 0.5*KLdiv(q,m)
 
 

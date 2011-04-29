@@ -3,14 +3,16 @@
 *~
 *.swp
 *.o
+*.log.py
 .DS_Store
-BLOG.txt
 data
 docs/papers
 
 liblda/test/ukwac-*
 liblda/topicviz/g.raphael/
 liblda/topicviz/raphael/
+
+liblda/ILDA/
 
 liblda/topicviz/tmve_ajbchaney/lda-c-dist/
 liblda/topicviz/tmve_ajbchaney/ids_fold07.txt

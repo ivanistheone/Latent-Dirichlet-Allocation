@@ -6,11 +6,13 @@ from liblda.extlibs import munkres
 
 
 
-def getCostMatrix2(th, th_t):
+def getCostMatrix2(th, th_t, normalize=True):
     """ computes the KL divergence (actually JS) between
         each pair columns of \Theta and \Theta_tilde
 
         return matrix is of size  numT x numT_t
+
+        if normalize=True we will make sure each entry is normalized
         """
 
     numDocs, numT  = th.shape
@@ -21,13 +23,13 @@ def getCostMatrix2(th, th_t):
     cost =np.zeros( [numT,numT_t] )
     for t1 in np.arange(0,numT):
         for t2 in np.arange(0,numT_t):
-            cost[ t1, t2 ] = JSdiv( th[:,t1], th_t[:,t2] )
+            cost[ t1, t2 ] = JSdiv( th[:,t1], th_t[:,t2], normalize=normalize)
 
     return cost
 
 
 
-def find_closest2(th, th_t):
+def find_closest2(th, th_t, normalize=True):
     """
     Let the cols of theta be indexed by t \in 0 ... numT-1
     and the cols of theta_t by tt \in 0 ... numT_t-1
@@ -39,7 +41,7 @@ def find_closest2(th, th_t):
     values = lists of topics tt.
     """
 
-    M = getCostMatrix2(th, th_t)
+    M = getCostMatrix2(th, th_t, normalize=normalize)
     numT, numT_t  = M.shape
 
     # setup the output data structure
