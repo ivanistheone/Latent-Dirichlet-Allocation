@@ -3,6 +3,8 @@
 import numpy as np
 import itertools
 
+import pylab as p
+
 __doc__ = """
 Dirichlet explorer .. v 0.1
 
@@ -59,7 +61,7 @@ def n_scaled_exp_function_maker(rate, multiplier):
 
 
 
-def get_sparse_stats(dsamples):
+def get_sparse_stats(dsamples, return_counts=False):
     """
     Takes the output of np.random.dirichlet
     and spits out the proportions of the samples
@@ -94,8 +96,49 @@ def get_sparse_stats(dsamples):
         #
         counts[k-1] +=1     # 0-based index
 
-    outf = np.divide(counts,N)
+    # return counts? or normalized "prob of sparseness"
+    if return_counts:
+        outf = counts
+    else:
+        outf = np.divide(counts,N)
     return outf
+
+
+def grouped_sparse_stats( phi,    resolution=0.6, interesting=0.2):
+    """ for the purpose of plotting the sparseness of
+        the matrix phi as a whole, we must put together
+        the different number of words.
+
+        esentially -- we want a histogram with `groups` bins
+        of the get_sparse_stats results
+
+        return a tuple
+         (data, bins)
+        which can be used directly for plotting a histogram.
+    """
+    numT, numTerms = phi.shape
+
+    groups = int(resolution*numT)
+    numTermsCutoff = int(interesting*numTerms)
+    bins=range(0,numTermsCutoff, numTermsCutoff/groups)
+
+    phi_sp = get_sparse_stats(phi, return_counts=True)
+    nz = phi_sp.nonzero()[0]
+
+    # nz should be augmented with all those counts that
+    # were greater than one -- rate but might happen...
+    data = list(nz)
+    for thin_bin in nz:
+        if phi_sp[thin_bin]>1:
+            data.extend( [thin_bin]*(phi_sp[thin_bin]-1) )
+    assert len(data) == numT
+
+    #hist, edges = np.histogram( phi, bins=bins)
+    return (data, bins)
+
+
+
+
 
 
 # usage
@@ -252,7 +295,7 @@ def plot_results( res , case=""):
     import mpl_toolkits.mplot3d.axes3d as p3
 
     # new fig
-    p.figure()
+    fig = p.figure()
 
     # setup the domain
     x = np.arange(0, res.shape[0], 1)
@@ -296,6 +339,74 @@ def plot_results( res , case=""):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+# May 10th
+# watching the sparseness of LDA model as iterations progress...
+
+def watch_sparseness(lda, steps=[0,1,1,5,10,50,100,100], seed=7, filename=None, initialize=True, pause=True ):
+    """ Given an lda model, we will
+         1. randomly initizlie it
+         2. run it for steps[i] iters
+            plot theta sparseness AND phi sparseness
+            pause
+    """
+    fig = p.figure()
+    cum_steps =  np.add.accumulate( steps )
+    if initialize:
+        lda.train(iter=0)
+    for i in range(0, len(steps)):
+
+        print "i=", i
+        print "this steps=", steps[i], "   cum steps=", cum_steps[i]
+
+        # run for steps[i] iterations:
+        lda.gibbs_sample(iter=steps[i], seed=seed)
+        lda.wpdt_to_probs()
+
+        # check the theta sparseness
+        p.subplot(121)
+        p.plot(get_sparse_stats(lda.theta), label='iter=%d'%cum_steps[i])
+        #p.legend()     --> legend on RHS is enough
+
+        # and phi sparseness
+        p.subplot(122)
+        data,b= grouped_sparse_stats(lda.phi, interesting=0.4)
+        p.hist(data, bins=b, label="iter=%d"%cum_steps[i] )
+        p.legend()
+
+        seed = seed*2 +1 % 4237
+
+        if pause:
+            raw_input('press any key to continue')
+
+    # plot priors
+    dirsamples = np.random.dirichlet( lda.alpha, 4000)
+    spvec = get_sparse_stats(dirsamples)
+    p.subplot(121)
+    p.plot(spvec,'--', label='prior')
+
+    #dirsamples2 = np.random.dirichlet( lda.beta, lda.numT)
+    #data,b = grouped_sparse_stats( dirsamples2, interesting=0.4 )
+    #p.subplot(122)
+    #p.hist(data, bins=b, label="prior", linestyle="dashed", fill=False )
+    #p.legend()
+
+    fig.text(.5, .95, '$\\theta$ and  $\\phi$ sparseness during first iters ($\\alpha$=%s $\\beta$=%0s T=%d )' %(str(lda.alpha[0]), str(lda.beta[0]),lda.numT), horizontalalignment='center')
+
+
+    if filename:
+        p.savefig(filename)
 
 
 
