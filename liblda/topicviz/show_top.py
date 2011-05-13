@@ -81,6 +81,33 @@ def show_top(phi, num=20, id2word=None):
     return topics
 
 
+def print_top(phi, num=20, id2word=None, print_probs=False):
+    """
+    Same as the above, but prints the prob of each term in bracket
+    """
+    numT,numTerms = phi.shape
+
+    topic_strings =[]
+    numT,numTerms = phi.shape
+    topics = [] # list of strings
+    for t in range(numT):
+        topic = ''
+        topic += str(t) + ": "
+        pw_gt = phi[t,:]
+        topwords = sorted(enumerate(pw_gt), key=operator.itemgetter(1), reverse=True)
+        for id in topwords[0:num]:
+            topic += id2word[id] + '(%.4d), '%phi[t,id]
+            #words = [id2word[id] for id,prb in topwords[0:num] ]
+        topics.append(words)
+
+    # print them all now
+    for t in topics:
+        print t
+
+
+
+
+
 
 # one row version of the above
 def top_words_for_topic(phi, t,  num=20, id2word=None):
