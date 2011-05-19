@@ -16,6 +16,7 @@ Use this script to check:
 # OR
 #     --hide=running,stdout,stderr at the end of the  fab cmdline
 
+
 from __future__ import with_statement # needed for python 2.5
 from fabric.api import *
 import os,sys
@@ -120,6 +121,17 @@ def screen_run(command_line="--help"):
         # on second though I am happy with the current setup, where screen dies after tasks have finished
         # running
         print "done runinng..................."
+
+def ls_screen():
+    """ Lists remote screen sessions (one called ldarun was started by screen_run) """
+    with hide('warnings'):
+        out = run('/usr/bin/screen -ls' )
+        if "No Sockets found" in out:
+            pass
+        else:
+            print out
+
+
 
 def kill_screen(command_line="--help"):
     """ Kills the remote screen session called ldarun """

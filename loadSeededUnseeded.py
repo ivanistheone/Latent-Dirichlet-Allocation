@@ -66,14 +66,21 @@ doc2id = dict(  enumerate(id_list) )
 
 
 # data
-phi1   = np.load("../runs/repeatedT50-1/phi.npy")
-theta1 = np.load("../runs/repeatedT50-1/theta.npy")
-phi2   = np.load("../runs/repeatedT50-2/phi.npy")
-theta2 = np.load("../runs/repeatedT50-2/theta.npy")
-phi3   = np.load("../runs/repeatedT50-3/phi.npy")
-theta3 = np.load("../runs/repeatedT50-3/theta.npy")
+phi = np.load("../runs/subtopicsT40/phi.npy")
+#seeded_phi = np.load("../runs/subtopicsT200seeded/phi.npy")
+unseeded_phi = np.load("../runs/subtopicsT200unseeded/phi.npy")
+
+theta = np.load("../runs/subtopicsT40/theta.npy")
+#seeded_theta = np.load("../runs/subtopicsT200seeded/theta.npy")
+unseeded_theta = np.load("../runs/subtopicsT200unseeded/theta.npy")
 
 
+
+
+#p.clf(); p.plot(unseeded_theta[2000:3000,[75,61,15]]); p.ylim([0,0.03])
+
+
+#hist_of_topics_in_docs(seeded_theta)
 
 print """
 you might want to run these commands:
