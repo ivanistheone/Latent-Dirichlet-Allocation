@@ -11,7 +11,7 @@ docs/papers
 liblda/test/ukwac-*
 liblda/topicviz/g.raphael/
 liblda/topicviz/raphael/
-
+liblda/topicviz/
 liblda/ILDA/
 
 liblda/topicviz/tmve_ajbchaney/lda-c-dist/

@@ -11,8 +11,9 @@ Dirichlet explorer .. v 0.1
 """
 
 
-DIR_DIM_START  = 1     # interested in many topics
-DIR_DIM_STOP   = 202    # but not too many ;)
+DIR_DIM_START  = 1          # interested in many topics
+DIR_DIM_STOP   = 4000       # but not too many ;)
+DIR_DIM_STEP   = 50
 
 
 def scaled_constf(n):
@@ -228,11 +229,19 @@ def get_sparse_for_alpha(alpha=None, alphaval=None, nrange=None, sample_size=Non
     # on the other hand it has all its weight on all terms :)
     # -- we just use 1 becaue the plot axis will be easier to set
     if not nrange:
-        nrange = np.arange(DIR_DIM_START, DIR_DIM_STOP,1, dtype=float)
+        nrange = np.arange(DIR_DIM_START, DIR_DIM_STOP,DIR_DIM_STEP, dtype=float)
     totaln = len(nrange)
 
+    # y-limit of plots
+    interesting = 3.5*alphaval*DIR_DIM_STOP
+    # the reason is that I belive the the formula will look similar to
+    #
+    #      sparsness_of_Dir(dim=n, alphaval)   ~=   2.5*alphaval*n
+    #
+    # so by setting an upper limit of 3.5 we should be able to see all
+    # the values of the plots -- and the plots will always be "the right size"
 
-    interesting = 70    # show only sparseness up to k=30
+
 
     results  =  []
 
@@ -270,8 +279,11 @@ def plot_dir_samples( dirsamples):
     ax.scatter3D(dirsamples[:,0],dirsamples[:,1], dirsamples[:,2])
     fig.show()
 
+    return fig
 
-def plot_results( res , case=""):
+
+
+def plot_sparse_for_alpha( res , case="",  filename=None ):
     """
     given a matrix of sparseness features
     one in each row, plots a color plot
@@ -298,18 +310,28 @@ def plot_results( res , case=""):
     fig = p.figure()
 
     # setup the domain
-    x = np.arange(0, res.shape[0], 1)
-    y = np.arange(0, res.shape[1],1)
+    # recall this statement in get_sparse_for_aphae()
+    # nrange = np.arange(DIR_DIM_START, DIR_DIM_STOP,DIR_DIM_STEP, dtype=float)
+    x = np.arange(DIR_DIM_START, DIR_DIM_STOP,DIR_DIM_STEP, dtype=float)
+    # this was set like this:
+    # y-limit of plots
+    #        interesting = 3.5*alphaval*DIR_DIM_STOP
+    y = np.arange(0,res.shape[1],1)
     X, Y = p.meshgrid(x, y)
-
 
     p.pcolor(X,Y, res.T)
 
-    p.xlabel('Dirichlet dimension')
-    p.ylabel('# entries that contain 95% of prob')
-    p.title('Sparseness of Dirichlet distribution $\\vec{\\alpha}(i)$ = %s' % case )
+    p.xlabel('n: Dirichlet dimension')
+    p.ylabel('$s(n,\\alpha)$ = sparseness $\\triangleq$ prob that s entries contain 95% of prob weight') # Dir($\\alpha\\textrm{ones}$[n]) sample weight')
+    p.title('Sparseness of Dirichlet distribution $\\vec{\\alpha}[i]$ = %s' % case )
 
     p.show()
+
+    if filename:
+        p.savefig(filename)
+
+    return fig
+
 
 
 
