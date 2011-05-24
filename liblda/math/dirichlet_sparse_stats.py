@@ -3,6 +3,8 @@
 import numpy as np
 import itertools
 
+import matplotlib
+matplotlib.use('Agg')
 import pylab as p
 
 __doc__ = """
@@ -233,7 +235,7 @@ def get_sparse_for_alpha(alpha=None, alphaval=None, nrange=None, sample_size=Non
     totaln = len(nrange)
 
     # y-limit of plots
-    interesting = 3.5*alphaval*DIR_DIM_STOP
+    interesting = int(3.5*alphaval*DIR_DIM_STOP)
     # the reason is that I belive the the formula will look similar to
     #
     #      sparsness_of_Dir(dim=n, alphaval)   ~=   2.5*alphaval*n
@@ -325,7 +327,8 @@ def plot_sparse_for_alpha( res , case="",  filename=None ):
     p.ylabel('$s(n,\\alpha)$ = sparseness $\\triangleq$ prob that s entries contain 95% of prob weight') # Dir($\\alpha\\textrm{ones}$[n]) sample weight')
     p.title('Sparseness of Dirichlet distribution $\\vec{\\alpha}[i]$ = %s' % case )
 
-    p.show()
+    if not filename:
+        p.show()
 
     if filename:
         p.savefig(filename)
@@ -334,6 +337,19 @@ def plot_sparse_for_alpha( res , case="",  filename=None ):
 
 
 
+
+def experiment_alpha_sparseness(alphas=[0.3, 0.1,0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001,0.0001], sample_size=4000):
+    """ Exmperimentally explore the sparesness structure induced by the Dirichlet
+        distribution for different choices of alpha -- in dimensions 1 to 4000.
+    """
+    for alpha in alphas:
+        r = get_sparse_for_alpha(alphaval=alpha, sample_size=sample_size) 
+        fig = plot_sparse_for_alpha(r, case="0.001", filename="Dirichlet_sparseness_alpha=%s.png"% str(alpha)  )
+        # r consists of 
+        print "done with alpha=", alpha 
+
+
+        
 
 
 
