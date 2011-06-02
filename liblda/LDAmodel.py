@@ -197,6 +197,9 @@ class LdaModel(interfaces.LdaModelABC):
             and totalNwords in my code ... for now.
         """
 
+        
+        if hasattr(self, "totalNwords") and self.totalNwords != None:
+            return self.totalNwords
         # maybe the corpus has cached the totalNwords ?
         if hasattr(self.corpus, "totalNwords") and self.corpus.totalNwords != None:
             return self.corpus.totalNwords
@@ -295,18 +298,40 @@ class LdaModel(interfaces.LdaModelABC):
         Goes through `self.z` and assigns random choice of topic for
         each of the tokens in each of the documents.
 
-        The ranzom choices of `z` are also accounted for in `ztot`, `wp` and `dp`.
+        The ranzom choices of `z` and then 
+        update the countsd in `ztot`, `wp` and `dp`.
+        """
+        logger.info("Random assignment of topic indicator variable self.z started")
+        ntot = len(self.z)  # = N  = totalNwords
+
+        # pick list of random topics
+        randomz  = np.random.randint(0, high=self.numT, size=ntot)
+        self.set_z_and_compute_counts_in_C( randomz )
+
+        logger.info("Random assignment of self.z done")
+
+
+
+
+    def set_z_and_compute_counts(self, z_new):
+        """
+        An appropirately sized topic assignment vector `z_new`,
+        we will be used to replace the current `self.z`.
+        
+        The change in `z` is also accounted for by recomputing 
+            `ztot`, `wp` and `dp`.
 
         TODO: rewrite in C -- it is kind of slow now.
         """
 
+        logger.info("Replacing topic indicator variable self.z with z_new")
 
-        logger.info("Random assignment of topic indicator variable self.z started")
-
-        ntot = len(self.z)  # = N  = totalNwords
+        ntot = len(self.z)      # = N  = totalNwords
+        ntotbis = len(z_new)
+        assert ntot == ntotbis
 
         # pick list of random topics
-        self.z = np.random.randint(0, high=self.numT, size=ntot)
+        self.z = z_new
 
         # reflect the `z` choice in the other arrays
         self.ztot.fill(0)
@@ -328,8 +353,58 @@ class LdaModel(interfaces.LdaModelABC):
 
         assert sum(self.ztot) == ntot
 
+        logger.info("self.z has been set to z_new. ztot, wp, dp updated.")
 
-        logger.info("Random assignment of self.z done")
+
+    def set_z_and_compute_counts_in_C(self, z_new):
+        """
+        An appropirately sized topic assignment vector `z_new`,
+        we will be used to replace the current `self.z`.
+        
+        The change in `z` is also accounted for by recomputing 
+            `ztot`, `wp` and `dp`.
+
+        TODO: rewrite in C -- it is kind of slow now.
+        """
+        logger.info("Replacing topic indicator variable self.z with z_new")
+        ntot = len(self.z)      # = N  = totalNwords
+        ntotbis = len(z_new)
+        assert ntot == ntotbis
+        # pick list of random topics
+        self.z = z_new
+        # reflect the `z` choice in the other arrays
+        self.ztot.fill(0)
+        self.wp.fill(0)
+        self.dp.fill(0)
+
+
+        z  = self.z
+        w  = self.w
+        d  = self.d
+        wp = self.wp
+        dp = self.dp
+        ztot = self.ztot
+
+        code = """ // updating the counts wp and dp 
+        int i, t;
+        for(i=0; i<ntot; i++){
+            t = z[i];   //        # set it to current token, and
+            ztot[t] +=1;
+            WP2(w[i],t) += 1;
+            DP2(d[i],t) += 1;
+        }
+        """
+        out = sp.weave.inline( code,
+           ['ntot',                 # params
+            'z', 'w', 'd',          # inputs
+            'wp', 'dp','ztot'],     # outputs
+           headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
+           compiler='gcc')
+
+        assert sum(self.ztot) == ntot
+
+        logger.info("self.z has been set to z_new. ztot, wp, dp updated.")
+
 
 
 
@@ -706,7 +781,7 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Finished converting  wp  --> phi  and  dp --> theta ")
 
 
-    def loglike(self):
+    def loglike(self, recompute=True):
         """
         Compute the log likelyhood of the corpus
         under current `phi` and `theta` distributions
@@ -716,15 +791,25 @@ class LdaModel(interfaces.LdaModelABC):
 
         if corpus is in RAM also, then more efficient to use term_counts
         """
-        sum=0.0
-        for i in range(0,self.corpus.totalNwords):
-            sum += np.log( np.inner( self.phi[:,self.w[i]], self.theta[self.d[i],:] ) )
-        return sum
+        if hasattr(self, 'loglike_val') and not recompute:
+            return self.loglike_val
+        else:
+            sum=0.0
+            for i in range(0,self.corpus.totalNwords):
+                sum += np.log( np.inner( self.phi[:,self.w[i]], self.theta[self.d[i],:] ) )
+            self.loglike_val = sum
+            return self.loglike_val
 
 
-    def perplexity(self):
+    def perplexity(self, recompute=True):
         """ Compute the perplexity of corpus = exp( - loglike / totalNwords ) """
-        return np.exp( -1.0*self.loglike()/self.corpus.totalNwords )
+        if hasattr(self, 'perplexity_val') and not recompute:
+            return self.perplexity_val
+        else:
+            self.perplexity_val =  np.exp( -1.0*self.loglike()/self.corpus.totalNwords )
+            return self.perplexity_val
+                
+
 
 
 
@@ -773,31 +858,87 @@ class LdaModel(interfaces.LdaModelABC):
             seed_t = seed_z[i]
             self.z[i] = prev_expand[seed_t] + np.random.randint(0, expand_factors[seed_t])
 
-        # reflect the `z` choice in the other arrays
-        self.ztot.fill(0)
-        self.wp.fill(0)
-        self.dp.fill(0)
-        for i in range(0,ntot):
-
-            t = self.z[i]        # set it to current token, and
-
-            # update total count topic occurence
-            self.ztot[t] +=1
-
-            # update wp and dp via the self.d and self.w lookup tables
-            self.wp[self.w[i]][t] += 1
-            self.dp[self.d[i]][t] += 1
-
-            if DEBUG and i % (ntot/20) ==0:
-                print "progress %d/20 ..." % int((i*20)/ntot +1 )
+        # update the counts dp, wp and ztot
+        self.set_z_and_compute_counts_in_C( self.z )
 
         assert sum(self.ztot) == ntot
-
 
         logger.info("Seeded assignment of self.z done")
 
 
 
+
+
+    def load_from_rundir(self, rundir):
+        """ re-hydrates a LdaModel object from the infor
+            stored in rundir:
+                minimum requirements:
+                    z.npy
+                    alpha.npy
+                    beta.npy
+                if the following "counts" are present we load them too
+                    Nwt.npy
+                    Ndt.npy
+                finally the probs can be computed from the counts
+                    phi.npy
+                    theta.npy
+        """
+        if not os.path.exists( rundir ):
+            raise IncompleteInputError('Rundir does not exist, so cannot load')
+
+        logger.info("Loading LDA model from disk")
+
+        # load the essential ones
+        for var in ["z","alpha", "beta"]:
+            fname = os.path.join( rundir, var+".npy")
+            if not os.path.exists( fname ):
+                raise IncompleteInputError('Cannot find '+var+".npy in rundir "+ rundir )
+            npy_var = np.load(fname)
+            setattr(self, var, npy_var)
+        
+        # warning CORPUS not loaded
+        #         VOCAB  not loaded 
+        # hence   w and d not loaded ...
+        #
+        # IDEA:  We can recurse up the rundir hierarchy
+        #        to look for a corpus / vocab file
+        #      or   
+        #        read it from output.json
+        #
+
+
+
+        # compute the counts
+        # self.allocate_arrays()
+        # self.set_z_and_compute_counts_in_C( self.z )
+        # NOT FEASIBLE since depends on w and d which 
+        # are not available -- since we don't know corpus yet :(
+
+        # load counts 
+        self.dp = np.load(  os.path.join( rundir, "Ndt.npy" ) )
+        self.wp = np.load(  os.path.join( rundir, "Nwt.npy")  )
+        assert  all( np.sum(self.dp,0) ==  np.sum(self.wp,0) )
+        self.ztot = np.sum(self.dp,0)
+
+
+        # set  params
+        self.numDocs, self.numT = self.dp.shape
+        self.numTerms = len(self.beta)
+        self.totalNwords = len(self.z)
+
+
+        # compute the probs
+        self.wpdt_to_probs()
+
+
+        logger.info("Loaded LDA model. Need to set CORPUS and VOCAB manually.")
+
+
+
+
+
+
+            
 
 
 
