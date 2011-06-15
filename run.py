@@ -289,7 +289,24 @@ def run(args):
 
     # if not in seeded mode run as usual
     if not args.seed_z_from:
-        lda.train(iter=args.iter, seed=args.seed )
+        if not args.save_perplexity_every:
+            lda.train(iter=args.iter, seed=args.seed )
+        else:
+            lda.allocate_arrays()
+            lda.read_dw_alphabetical()
+            lda.random_initialize() 
+            cum=0
+            perp_hist = []
+            while( cum < args.iter):
+
+                lda.gibbs_sample(iter=args.save_perplexity_every, seed=args.seed+cum )
+                lda.wpdt_to_probs()
+                perp_hist.append( lda.perplexity() )   # = np.exp( -1 * loglike() / totalNwords )
+
+                cum += args.save_perplexity_every
+
+
+            
     # NEW: S
     else:
         logger.info("Using seeded z training ... ")
@@ -366,8 +383,8 @@ def run(args):
     # run details
     output["rundir"]=rundir
     output["host_id"]=host_id
-    output["iter"]=lda.iter
-    output["seed"]=lda.seed
+    output["iter"]=args.iter
+    output["seed"]=args.seed
     output["start_time"]=start_time.isoformat()  # ISO format string
                                     # to read ISO time stamps use dateutil
                                     #>>> from dateutil import parser
@@ -390,6 +407,7 @@ def run(args):
     # calculate likelyhood
     output["loglike"]=lda.loglike()
     output["perplexity"]=lda.perplexity()   # = np.exp( -1 * loglike() / totalNwords )
+    output["perplexity_history"]=perp_hist
     logger.info("Log likelyhood: %f" % output["loglike"] )
     logger.info("Perplexity: %f" % output["perplexity"] )
     #
@@ -482,6 +500,10 @@ if __name__=="__main__":
                         help="Specify uniform Dirichlet prior on theta (topics in docs)")
     parser.add_argument('--beta', type=float,
                         help="Specify uniform prior on phi (words in topics)")
+
+    # NEW
+    parser.add_argument('--save_perplexity_every', type=int,
+                        help="Calculate the model perplexity and print it to disk at this interval.")
 
     parser.add_argument('--rundirs_root',
                         help="Parent folder where runs are to be stored")

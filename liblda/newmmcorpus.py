@@ -20,8 +20,8 @@ class NewMmCorpus(matutils.MmReader, interfaces.CorpusABC):
     """
     Corpus in the Matrix Market format.
     """
-    def __init__(self, input, word2id=None):
-        super(NewMmCorpus,self).__init__(input)
+    def __init__(self, input, word2id=None, transposed=True):
+        super(NewMmCorpus,self).__init__(input, transposed=transposed)
 
         if word2id:
             self.setVocabFromDict( word2id )
@@ -47,12 +47,14 @@ class NewMmCorpus(matutils.MmReader, interfaces.CorpusABC):
         # note that this way, only one doc is stored in memory at a time, not the whole corpus
         nwords = 0L
         terms = {}
+        ndocs =0
         for doc in self:
+            ndocs += 1
             for word, cnt in doc:
                 nwords += cnt
                 terms[word]=1
         self.totalNwords = long(nwords)
-
+        self.numDocs = ndocs
 
     def setVocabFromList(self, wlist):
         """
