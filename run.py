@@ -407,7 +407,8 @@ def run(args):
     # calculate likelyhood
     output["loglike"]=lda.loglike()
     output["perplexity"]=lda.perplexity()   # = np.exp( -1 * loglike() / totalNwords )
-    output["perplexity_history"]=perp_hist
+    if args.save_perplexity_every:
+        output["perplexity_history"]=perp_hist
     logger.info("Log likelyhood: %f" % output["loglike"] )
     logger.info("Perplexity: %f" % output["perplexity"] )
     #
