@@ -19,9 +19,9 @@ from liblda.math.distances import KLdiv, JSdiv
 
 
 # Phi based mappings
-from liblda.subtopics.hungarian_algorithm import getCostMatrix, find_closest
+from liblda.ILDA.hungarian_algorithm import getCostMatrix, find_closest
 # Theta  based mappings
-from liblda.subtopics.hungarian_algorithm import getCostMatrix2, find_closest2
+from liblda.ILDA.hungarian_algorithm import getCostMatrix2, find_closest2
 
 
 
@@ -58,46 +58,11 @@ IDS_FILE  =  DATA_PARENT_DIR+"arXiv_train_ids.txt"
 # loaders....
 
 # vocab, model and doc2id
-tcorpus3 = Low2Corpus(DOCS_FILE)
-tcorpus3.setVocabFromList( [w.strip() for w in open(VOCAB_FILE, 'r').readlines() ] )
-tcorpus3.doCounts()
+train_corpus = Low2Corpus(DOCS_FILE)
+train_corpus.setVocabFromList( [w.strip() for w in open(VOCAB_FILE, 'r').readlines() ] )
+train_corpus.doCounts()
 id_list =  [w.strip() for w in open(IDS_FILE, 'r').readlines() ]
 doc2id = dict(  enumerate(id_list) )
-
-
-# T50 data
-#phi1   = np.load("../runs/repeatedT50-1/phi.npy")
-#theta1 = np.load("../runs/repeatedT50-1/theta.npy")
-#phi2   = np.load("../runs/repeatedT50-2/phi.npy")
-#theta2 = np.load("../runs/repeatedT50-2/theta.npy")
-#phi3   = np.load("../runs/repeatedT50-3/phi.npy")
-#theta3 = np.load("../runs/repeatedT50-3/theta.npy")
-
-
-
-#phi1   = np.load("../runs/repeatedT400-1/phi.npy")
-#theta1 = np.load("../runs/repeatedT400-1/theta.npy")
-#phi2   = np.load("../runs/repeatedT400-2/phi.npy")
-#theta2 = np.load("../runs/repeatedT400-2/theta.npy")
-#phi3   = np.load("../runs/repeatedT400-3/phi.npy")
-#theta3 = np.load("../runs/repeatedT400-3/theta.npy")
-
-#phi4   = np.load("../runs/repeatedT400-4/phi.npy")
-#theta4 = np.load("../runs/repeatedT400-4/theta.npy")
-#phi5   = np.load("../runs/repeatedT400-5/phi.npy")
-#theta5 = np.load("../runs/repeatedT400-5/theta.npy")
-#phi6   = np.load("../runs/repeatedT400-6/phi.npy")
-#theta6 = np.load("../runs/repeatedT400-6/theta.npy")
-
-phiT30_1   = np.load("../runs/repeatedT30-1/phi.npy")
-thetaT30_1 = np.load("../runs/repeatedT30-1/theta.npy")
-thetaT30_1 = np.load("../runs/repeatedT30-1/theta.npy")
-phiT30_2   = np.load("../runs/repeatedT30-2/phi.npy")
-thetaT30_2 = np.load("../runs/repeatedT30-2/theta.npy")
-phiT30_3   = np.load("../runs/repeatedT30-3/phi.npy")
-thetaT30_3 = np.load("../runs/repeatedT30-3/theta.npy")
-phiT30_4   = np.load("../runs/repeatedT30-4/phi.npy")
-thetaT30_4 = np.load("../runs/repeatedT30-4/theta.npy")
 
 
 phiT60_1   = np.load("../runs/repeatedT60-1/phi.npy")
@@ -116,7 +81,50 @@ phiT60_4   = np.load("../runs/repeatedT60-4/phi.npy")
 thetaT60_4 = np.load("../runs/repeatedT60-4/theta.npy")
 zT60_4     = np.load("../runs/repeatedT60-4/z.npy")
 
+# 5 6 7 8
 
+
+phiT60_9   = np.load("../runs/repeatedT60-9/phi.npy")
+thetaT60_9 = np.load("../runs/repeatedT60-9/theta.npy")
+zT60_9     = np.load("../runs/repeatedT60-9/z.npy")
+
+
+phi_orig = phiT60_1
+theta_orig = thetaT60_1
+z_orig = zT60_1
+
+
+
+# The experimen where phiT60_1 had phiT60_2 -- to phiT60_8
+# merged into it with 0 60 and 200 steps of Gibbs reamplings
+# in between merging steps
+
+phi_m0gibbs   = np.load("../runs/new_merging_gibbs0/phi.npy")
+theta_m0gibbs = np.load("../runs/new_merging_gibbs0/theta.npy")
+z_m0gibbs     = np.load("../runs/new_merging_gibbs0/z.npy")
+
+phi_m60gibbs   = np.load("../runs/new_merging_gibbs60/phi.npy")
+theta_m60gibbs = np.load("../runs/new_merging_gibbs60/theta.npy")
+z_m60gibbs     = np.load("../runs/new_merging_gibbs60/z.npy")
+
+phi_m200gibbs   = np.load("../runs/new_merging_gibbs200/phi.npy")
+theta_m200gibbs = np.load("../runs/new_merging_gibbs200/theta.npy")
+z_m200gibbs     = np.load("../runs/new_merging_gibbs200/z.npy")
+
+# same as 0gibbs, but in the end we do a 200 iterations
+phi_m0gibbs_f200   = np.load("../runs/new_merging_gibbs0_f200/phi.npy")
+theta_m0gibbs_f200 = np.load("../runs/new_merging_gibbs0_f200/theta.npy")
+z_m0gibbs_f200     = np.load("../runs/new_merging_gibbs0_f200/z.npy")
+# we want to test whether it is the Gibbs steps that is undoing
+# the topic coherence that was done by the merging steps
+
+
+
+
+# one w/ 200 for fun
+phiT200   = np.load("../runs/subtopicsT200unseeded/phi.npy")
+thetaT200 = np.load("../runs/subtopicsT200unseeded/theta.npy")
+zT200     = np.load("../runs/subtopicsT200unseeded/z.npy")
 
 
 
