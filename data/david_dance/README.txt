@@ -17,11 +17,20 @@ which is not a lot.
 1/ Preparing the word stream
     ./csv_to_low.py
     This splits the csv file into `ids.txt` and `docs.txt`.
+    Removes stopwords and stems words.
+
 
 2/ Building a vocabulary
     ./makevocab.py -i docs.txt -o tmp_v.txt --minoccur 4
     We have dropped words that occur less than 4 times in the answers.
     The result is the file `vocab.txt` which has 128 different terms.
+
+
+
+    I have tried with stemming and non-stemming...
+    Also cutoff minoccur 3 and minoccur 2
+    and more topics seems to find better topics.
+
 
 
 
@@ -35,151 +44,127 @@ characterized by a few topics.
 The results consist of the most likely words in each topic.
 
 
+=== 
 
-=== 5 topics ===
+probook:david_dance ivan$ ../../run.py --docs docs.txt --vocab vocab.txt --iter 800 --save_probs --print_topics 14 --rundirs_root /CurrentPorjects/LatentDirichletAllocation/data/david_dance/ --alpha 0.01 --beta 0.005 --numT 29 --seed 22
+    ...
+    itr = 798
+    itr = 799
+    2011-08-25 19:06:39,619 : INFO : Perplexity: 46.817115
+    2011-08-25 19:06:39,622 : INFO : Phi sparseness. center=19, width=5
+    2011-08-25 19:06:39,626 : INFO : Theta sparseness. center=6, width=6
+    2011-08-25 19:06:39,627 : INFO : Done saving output.json
+
+    (one topic per line)
+
+    cue, direct, non, verbal, react, receiv, say, delay, split, time, abl, hand, inform, later
+    center, common, similar, let, bodi, movement, social, hand, say, forc, line, level, meet, energi
+    time, tri, awar, choreographi, understand, music, develop, teach, teacher, person, partnership, requir, learn, inform
+    feel, moment, share, enjoy, qualiti, techniqu, music, experi, emot, perfect, danc, level, male, dancer
+    movement, essenti, step, point, relationship, visual, function, facilit, speak, systemat, balanc, order, enhanc, momentum
+    ballet, element, dancer, ballroom, polit, play, choreograph, classic, form, modern, enhanc, add, influenc, connect
+    danc, connect, touch, time, space, bring, woman, reduc, repetit, synchron, basic, anxieti, mean, nice
+    resist, bodi, relat, partnership, weight, person, understand, follow, speed, defin, joint, knowledg, mirror, express
+    contact, improv, help, practic, sensit, dancer, train, touch, awar, improvis, eye, close, exercis, basic
+    connect, trust, support, direct, chemistri, communic, space, eas, nice, dialogu, mutual, perform, respect, agre
+    contact, danc, visual, depend, express, physic, relat, feel, choreographi, style, woman, look, relationship, want
+    breath, level, anxieti, check, especi, coupl, belli, eachoth, heartbeat, resolv, salsa, chest, fit, present
+    time, lead, lift, import, chang, support, big, develop, simpli, materi, women, profession, maintain, easier
+    power, tool, sensori, memori, strength, concentr, engag, left, motor, pick, quick, contact, common, natur
+    breath, rhythm, import, think, flow, necessari, equal, shape, movement, natur, speed, idea, puls, rythm
+    movement, term, physic, initi, turn, effort, momentum, impuls, happen, american, basi, imposs, intent, sequenc
+    balanc, weight, lift, support, posit, lean, want, pose, stretch, connect, floor, involv, partner, contact
+    point, centr, graviti, bodi, share, meet, general, blend, import, ballroom, contact, improvis, function, convey
+    weight, transfer, forward, touch, follow, releas, axi, breath, chest, later, backward, foot, signal, need
+    perform, differ, question, contemporari, mean, follow, abil, concentr, recogn, unchoreograph, term, aspect, partner, contact
+    depend, touch, lead, connect, requir, hold, choreographi, natur, stori, strong, cours, core, moment, essenti
+    contact, visual, exercis, element, form, open, aesthet, import, ballroom, physic, approach, evolv, simpli, necessarili
+    danc, tango, think, import, ideal, ballroom, latin, achiev, control, type, posit, match, championship, chi
+    need, understand, pull, push, sure, thing, eye, term, carri, reason, case, awkward, convers, freedom
+    contact, weight, touch, share, hand, possibl, improvis, explor, lot, sens, clear, offer, start, visual
+    social, communic, awar, similar, competit, focus, physic, experi, abil, aspect, context, communiti, inner, manifest
+    movement, bodi, creat, help, explor, surfac, dancer, order, fit, awar, mechan, shoulder, simultan, effici
+    feel, bodi, danc, person, abl, listen, share, languag, mind, ground, energi, materi, yield, predict
+    need, bodi, style, movement, communic, tri, chang, question, abl, lean, fall, present, catch, coordin
+
+
+which makes me think what it will find with the same parameters but with no stemming:
+
+    2011-08-25 19:18:16,295 : INFO : Perplexity: 52.728065
+    2011-08-25 19:18:16,298 : INFO : Phi sparseness. center=28, width=23
+    2011-08-25 19:18:16,304 : INFO : Theta sparseness. center=6, width=6
+    2011-08-25 19:18:16,305 : INFO : Done saving output.json
+
+    movement, important, bodies, lead, partners, movements, steps, visual, rhythm, touching, kind, story, timing, natural
+    breathing, important, breath, basic, anxiety, speed, levels, steps, breaths, control, eachother, heartbeat, match, reduce
+    connection, feel, music, moment, communication, ease, experience, ability, emotion, mutual, direction, resist, slightly, willingness
+    required, touch, movements, need, transfer, lead, sure, terms, impulse, american, eventually, risk, style, follow
+    partner, depends, dance, need, movement, choreography, visual, physical, relationship, feel, style, dancing, performance, relate
+    partner, weight, touch, partnership, essential, sharing, aspects, moves, similar, aware, floor, performance, eye, beginners
+    dance, social, connection, tango, element, center, ballet, dancer, modern, connect, perform, form, political, adds
+    dance, dancing, moving, makes, feel, person, times, memory, mindful, trying, ways, direction, carried, central
+    ballet, time, dancers, choreography, change, able, classical, course, power, arts, lady, martial, connection, professional
+    weight, improve, practice, partner, lot, axis, hands, helps, catching, falling, foot, forward, laterally, simple
+    simply, ballroom, physical, lead, partnering, form, dancers, exercise, line, vocabulary, question, communicate, dances, aesthetic
+    ballroom, woman, partner, contemporary, stage, dancing, political, hand, want, audience, danced, enjoy, feels, focus
+    resistance, weight, cue, body, partner, partners, partnership, say, related, directly, definately, knowledge, meet, previously
+    body, help, try, surfaces, movement, lift, ballroom, hands, bodies, moment, dancer, support, aware, chest
+    point, shared, important, improv, supported, weight, support, maybe, meeting, bodies, centre, sharing, strength, balance
+    trust, movement, shared, chemistry, space, big, effort, lifts, works, dancers, awareness, practice, dialogue, timing
+    create, eyes, training, strong, improv, energy, fit, case, closed, reason, helps, moments, powerful, looking
+    touch, communication, understanding, expression, pull, push, release, time, brings, happen, visual, create, woman, related
+    moving, think, style, dance, tango, chest, depending, latin, achieve, breathe, chi, doesn, follows, hard
+    level, dancer, perfect, connected, present, male, turns, women, belly, check, closer, effect, engaged, ideally
+    ways, touch, explore, possibilities, improvisation, limits, dances, impulse, experienced, head, offers, shapes, tai, contact
+    visual, elements, improvisation, difference, think, leading, styles, improve, play, teaching, important, question, generally, present
+    leaning, change, time, listening, holding, lifting, express, core, hands, connected, balanced, keeps, persons, position
+    common, center, partners, partnering, person, centre, touch, gravity, similar, order, point, energy, depending, share
+    understanding, technique, joints, question, allowing, exploration, follower, frame, interesting, leader, relation, quality, react, means
+    breath, rhythm, going, movements, balance, flow, partner, body, making, thinking, allow, definitely, equally, pulse
+    body, feel, material, language, able, especially, listen, recognize, yielding, dance, contact, partner, weight, touch
+    common, cues, non, verbal, sensory, term, tool, visual, powerful, basis, grounded, motor, pick, learning
+    awareness, body, important, depends, exercises, sensitivity, need, context, open, things, social, information, let, necessarily
+
+
+
+So it is not clear to me whether stemming helps...
+
+
+    
+
+
+=== 5, 10, 15 and 20 topics ===
+
+Earlier experiments attempted with smaller number of topics -- but
+none seemed to provide coherent topics.
 
 ../../run.py --docs docs.txt --vocab vocab.txt --numT 5 --iter 800 --save_probs --print_topics 20 --rundirs_root /CurrentPorjects/LatentDirichletAllocation/data/david_dance/ --alpha 0.05 --beta 0.01
-
-topic 0:
-contact, dance, depends, visual, dancing, physical, need, choreography, feel, important, ballroom, partnering, movement, think, cues, express, leaning, non, performance, relate
-
-topic 1:
-weight, trust, connection, shared, feel, communication, contact, movement, moment, body, support, moving, music, change, dancer, practice, timing, try, level, dancers
-
-topic 2:
-movement, common, center, point, breath, breathing, centre, partners, rhythm, able, dance, yes, person, create, body, bodies, connected, order, space, listening
-
-topic 3:
-lead, movements, important, connection, touch, yes, required, breath, rhythm, ways, going, steps, bodies, helps, necessary, question, sure, touching, transfer, need
-
-topic 4:
-touch, body, partners, resistance, weight, cue, essential, yes, partnership, understanding, awareness, makes, related, person, time, definately, joints, relation, say, term
-
-
-
-
-=== 10 topics ===
-
 ../../run.py --docs docs.txt --vocab vocab.txt --numT 10 --iter 800 --save_probs --print_topics 20 --rundirs_root /CurrentPorjects/LatentDirichletAllocation/data/david_dance/ --alpha 0.02 --beta 0.01
-
-movement, feel, music, create, cues, non, verbal, connection, powerful, sensory, term, dancing, awareness, eyes, moments, important, need, effort, depends, expression
-
-breath, rhythm, important, breathing, dance, yes, think, steps, necessary, able, speed, choreography, question, partner, contact, movement, touch, weight, body, depends
-
-point, bodies, ways, movements, movement, balance, going, hands, flow, kind, centre, moving, helps, touching, level, moment, support, sure, partner, contact
-
-dance, dancing, lead, ballroom, partnership, level, dancer, essential, ability, woman, connection, movements, basic, ballet, experience, latin, physical, communication, space, steps
-
-touch, yes, partnering, required, need, lead, movements, transfer, communication, sure, follow, contact, important, essential, awareness, improve, power, terms, question, speed
-
-depends, dance, choreography, need, time, style, important, change, express, leaning, performance, weight, relationship, expression, relate, lifting, feel, partnering, modern, movement
-
-weight, connection, shared, body, feel, dancers, trust, moment, moving, practice, try, timing, support, chest, ease, sharing, supported, works, communication, material
-
-body, resistance, weight, cue, touch, partners, person, understanding, related, makes, joints, pull, relation, say, directly, technique, feel, moment, balance, going
-
-contact, visual, physical, improv, improvisation, look, directly, eye, relationship, makes, relate, improve, partner, dance, movement, touch, weight, body, important, yes
-
-movement, common, partners, center, trust, centre, person, able, chemistry, connected, order, direction, gravity, similar, space, time, technique, energy, physical, timing
-
-
-
-=== 15 topics ===
-
 ../../run.py --docs docs.txt --vocab vocab.txt --numT 15 --iter 800 --save_probs --print_topics 20 --rundirs_root /CurrentPorjects/LatentDirichletAllocation/data/david_dance/ --alpha 0.01 --beta 0.01
-
-movement, partners, awareness, touch, cues, non, verbal, yes, connection, powerful, sensory, trust, breathing, direction, body, create, order, improve, story, push
-
-depends, ways, chemistry, leaning, express, feel, rhythm, bodies, relationship, kind, choreography, related, partner, contact, dance, movement, touch, weight, body, important
-
-weight, connection, try, moment, practice, chest, dancers, support, works, moving, music, basic, listening, ease, improve, speed, partner, contact, dance, movement
-
-movements, question, sure, transfer, required, term, need, going, balance, power, rhythm, expression, technique, ballet, effort, partner, contact, dance, movement, touch
-
-depends, choreography, need, change, style, dance, time, performance, partnering, expression, relate, modern, necessary, lifting, trust, able, energy, supported, partner, contact
-
-contact, visual, dance, important, dancing, physical, ballroom, think, woman, basic, makes, latin, ballet, steps, experience, eye, look, time, ways, material
-
-body, resistance, touch, weight, cue, understanding, partners, partnership, directly, related, joints, relation, person, space, definately, say, balance, dancing, bodies, makes
-
-movements, lead, helps, moving, touching, flow, follow, hands, contact, movement, partnering, dancers, going, directly, direction, partner, dance, touch, weight, body
-
-touch, yes, communication, contact, improv, connection, partnering, essential, required, supported, terms, change, experience, partner, dance, movement, weight, body, important, depends
-
-lead, dancer, essential, ability, level, moving, partnership, contact, understanding, technique, moment, support, definately, ease, partner, dance, movement, touch, weight, body
-
-shared, trust, movement, timing, body, feel, able, important, breath, level, relationship, weight, space, support, hands, connected, effort, material, time, dancers
-
-common, center, point, centre, movement, bodies, partners, gravity, similar, balance, create, connected, dance, order, say, partner, contact, touch, weight, body
-
-music, movement, feel, pull, moment, push, sharing, create, practice, eye, story, works, person, moving, express, terms, partner, contact, dance, touch
-
-contact, feel, person, body, dancing, communication, eyes, improvisation, important, need, physical, listening, energy, ballroom, steps, moments, relate, improve, partner, dance
-
-breath, rhythm, yes, important, breathing, dance, think, speed, able, going, necessary, partnering, dancers, steps, kind, power, partner, contact, movement, touch
-
-
-
-
-=== 20 topics ===
-
-
  ../../run.py --docs docs.txt --vocab vocab.txt --numT 20 --iter 800 --save_probs --print_topics 20 --rundirs_root /CurrentPorjects/LatentDirichletAllocation/data/david_dance/ --alpha 0.01 --beta 0.01
 
-contact, feel, physical, eye, improvisation, dancing, sharing, important, dance, ways, eyes, partner, movement, touch, weight, body, yes, depends, connection, visual
-
-required, transfer, movements, term, touch, need, yes, lead, rhythm, sure, power, style, expression, effort, partner, contact, dance, movement, weight, body
-
-movements, lead, moving, going, touching, follow, hands, flow, ways, balance, breath, point, moment, direction, partner, contact, dance, movement, touch, weight
-
-touch, bodies, important, depends, pull, push, movement, choreography, kind, terms, helps, connection, essential, required, basic, partner, contact, dance, weight, body
-
-point, understanding, question, technique, bodies, sure, centre, support, balance, shared, able, terms, partner, contact, dance, movement, touch, weight, body, important
-
-movement, feel, energy, need, person, music, listening, eyes, moments, body, sharing, partner, contact, dance, touch, weight, important, yes, depends, connection
-
-breath, rhythm, yes, important, breathing, necessary, think, steps, speed, kind, latin, power, partner, contact, dance, movement, touch, weight, body, depends
-
-movement, trust, shared, space, chemistry, order, able, relationship, ease, effort, time, partnership, style, dancer, steps, direction, partner, contact, dance, touch
-
-connection, moment, music, create, feel, communication, speed, able, basic, partner, contact, dance, movement, touch, weight, body, important, yes, depends, visual
-
-common, center, centre, partners, gravity, similar, create, connected, communication, change, effort, relation, partner, contact, dance, movement, touch, weight, body, important
-
-touch, partners, partnering, yes, leaning, connection, person, change, relationship, essential, ways, important, order, body, related, flow, partner, contact, dance, movement
-
-dancers, depends, works, movement, body, experience, story, partner, contact, dance, touch, weight, important, yes, connection, visual, feel, partners, breath, need
-
-weight, practice, try, chest, change, moving, breathing, support, partner, contact, dance, movement, touch, body, important, yes, depends, connection, visual, feel
-
-movement, cues, non, verbal, partners, powerful, sensory, breathing, helps, improve, need, listening, direction, partner, contact, dance, touch, weight, body, important
-
-depends, need, choreography, time, style, express, performance, relate, dance, expression, lifting, modern, feel, necessary, ballroom, improve, partner, contact, movement, touch
-
-timing, dance, feel, shared, weight, trust, able, material, important, level, hands, experience, body, center, moment, connected, supported, breath, partner, contact
-
-body, resistance, weight, cue, partnership, partners, directly, person, essential, makes, related, definately, joints, say, dancing, lead, steps, basic, relation, story
-
-contact, yes, communication, awareness, touch, improv, body, support, lead, ease, supported, center, ability, direction, partner, dance, movement, weight, important, depends
-
-contact, visual, dance, physical, important, think, partnering, ballroom, look, relationship, makes, partner, movement, touch, weight, body, yes, depends, connection, feel
-
-dance, dancing, ballroom, level, dancer, woman, ability, ballet, lead, moving, latin, connection, movements, time, understanding, look, think, ways, partner, contact
 
 
 
-==== Furhter steps ====
+
+
+
+==== Topic labelling  ====
+
 
  - David must select one of the above choices of # of topics as the most informative.
+ - provide short labels (tags) for each topic
+
+
+
+====  Classification ====
+
+
+answer = one line in the .xls
+person = sum of all the answers for one person
+question = sum of the answers of all people for that question
+
  - I can then label each answer and and each person according to which topics it contains.
-
-
-Possibly better results can be obtained though stemming, which maps many words
-to their common root:
-   dance, dancer, dancing, dancers  --->  dance
-
-
-To be continued....
 
 
 

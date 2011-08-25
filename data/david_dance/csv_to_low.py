@@ -12,6 +12,11 @@ from porter2 import stem
 
 from stopwords import STOPWORDS
 
+
+dostem = True
+
+
+
 # setup the regex for words that consist of letters ONLY
 import re
 word=re.compile(r"[a-z]+")
@@ -52,7 +57,11 @@ for line in data:
         if len(w)<3:
             continue
 
-        w_stem = stem(w)
+        if dostem:
+            w_stem = stem(w)
+        else:
+            w_stem = w
+
         word_list.append(w_stem)
 
     answer2 = " ".join(word_list) 
