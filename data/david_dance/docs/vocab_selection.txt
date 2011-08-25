@@ -1,0 +1,27 @@
+
+probook:david_dance ivan$ ./makevocab.py -i docs.txt -o vocab.txt --minoccur 1
+VOCAB extractor
+after rem. low counts in doc :  813
+after removing stopwords:  791
+Final vocab length:  791
+probook:david_dance ivan$ ./makevocab.py -i docs.txt -o vocab.txt --minoccur 2
+VOCAB extractor
+after rem. low counts in doc :  813
+after removing stopwords:  791
+Final vocab length:  370
+probook:david_dance ivan$ ./makevocab.py -i docs.txt -o vocab.txt --minoccur 3
+VOCAB extractor
+after rem. low counts in doc :  813
+after removing stopwords:  791
+Final vocab length:  239
+probook:david_dance ivan$ ./makevocab.py -i docs.txt -o vocab.txt --minoccur 4
+VOCAB extractor
+after rem. low counts in doc :  813
+after removing stopwords:  791
+Final vocab length:  175
+probook:david_dance ivan$ ./makevocab.py -i docs.txt -o vocab.txt --minoccur 5
+VOCAB extractor
+after rem. low counts in doc :  813
+after removing stopwords:  791
+Final vocab length:  126
+
