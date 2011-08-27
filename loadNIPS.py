@@ -104,6 +104,14 @@ rd = os.path.join( RUNDIRS_ROOT, "lab7-24/run0021/" )
 mstar.load_from_rundir(rd)
 
 
+# load the merged model
+mrgd = LdaModel(numT=NUM_TOPICS, corpus=NIPS_corpus, alpha=0.005, beta=0.01)
+mrgd.allocate_arrays()
+mrgd.read_dw_alphabetical()
+rd = os.path.join( RUNDIRS_ROOT, "merge40-a0_005-b0_01/" )
+mrgd.load_from_rundir(rd)
+
+
 
 # setup the dirs models to be merged
 m_dir_list = []
