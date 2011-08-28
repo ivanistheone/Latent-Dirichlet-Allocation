@@ -14,6 +14,77 @@ from scikits.learn.linear_model import  LogisticRegression
 
 
 
+from scikits.learn.grid_search import GridSearchCV
+from scikits.learn import metrics
+from scikits.learn.pipeline import Pipeline
+
+from liblda.supervised.load_data import load_data
+
+
+
+
+import logging
+logging.basicConfig(format = '%(asctime)s : %(levelname)s : %(message)s', level = logging.INFO)
+logger = logging.getLogger('LogReg')
+logger.setLevel(logging.INFO)
+
+
+
+rundir = '/Users/ivan/Homes/master/Documents/Projects/runs/reduced1/'
+NIPSDIR = "/CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/"
+
+( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
+allX = np.vstack((trainX,testX))
+allY = np.concatenate((trainY,testY))
+
+print "called:"
+print "( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)"
+ 
+LRparametersL1 = {
+        'logreg__C': (0.1, 1, 2, 5, 10, 50),
+        'logreg__penalty': ('l1',) ,
+        }
+
+LRparametersL2 = {
+        'logreg__C': (0.001, 0.01, 0.1, 1),
+        'logreg__penalty': ('l2',) ,
+        }
+
+
+def do_grid_search(X,Y, gs_params):
+    """ Given data (X,Y) will perform a grid search on g_params
+        for a LogisticRegression called logreg
+        """
+    lrpipe = Pipeline([
+        ('logreg',  LogisticRegression()  )
+        ])
+    gs = GridSearchCV( lrpipe, gs_params , n_jobs=-1)
+    #print gs
+    gs = gs.fit(X,Y)
+
+    best_parameters, score = max(gs.grid_scores_, key=lambda x: x[1])
+    logger.info("best_parameters: " +str( best_parameters ) )
+    logger.info("expected score: "+str( score ) )
+
+    return best_parameters
+
+
+def train_lrpipe(trainX, trainY,  params ):
+    """ trains LogisiticRegression model with params
+        logreg_C specified by params 
+        """
+    lrpipe = Pipeline([
+        ('logreg',  LogisticRegression(penalty="l1", C=1)  )
+        ])
+    lrpipe = lrpipe.fit(trainX,trainY, **params)
+    return lrpipe
+
+
+
+
+
+
+
 def reg_param_search( th1000, categories, dir=None):
 
     if not dir:

@@ -1,0 +1,74 @@
+
+
+
+
+In [138]: %run logistic_regression.py
+( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
+
+In [139]: L1params = do_grid_search(allX, allY, LRparametersL1)
+
+In [140]: lr = train_lrpipe(trainX, trainY, L1params)
+
+In [141]: allTitles = load_titles(NIPSDIR)
+ LOADING Corpus Data from: /CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/
+
+In [142]: evaluate(lr, testX, testY, testTitles=allTitles[test_ids])
+
+[[7 1 0 2 0 0 0 0]
+ [4 4 0 1 0 0 0 1]
+ [0 0 8 0 0 0 0 2]
+ [0 1 0 7 2 0 0 0]
+ [0 1 0 4 5 0 0 0]
+ [1 0 1 3 0 5 0 0]
+ [1 1 0 2 1 0 5 0]
+ [1 1 0 1 0 1 0 6]]
+                                    precision    recall  f1-score   support
+
+                      neuroscience       0.50      0.70      0.58        10
+                            vision       0.44      0.40      0.42        10
+reinforcement learning and control       0.89      0.80      0.84        10
+                        algorithms       0.35      0.70      0.47        10
+                            theory       0.62      0.50      0.56        10
+                 cognitive science       0.83      0.50      0.62        10
+ signal processing and time series       1.00      0.50      0.67        10
+                      applications       0.67      0.60      0.63        10
+
+                       avg / total       0.66      0.59      0.60        80
+
+Paper title                                                                       predic true  
+________________________________________________________________________________  ______ ______
+Shaping the State Space Landscape in Recurrent Networks .                         algori neuros
+Statistics of Natural Images: Scaling in the Woods                                vision neuros
+Spiking Boltzmann Machines,                                                       algori neuros
+Learning to See Rotation and Dilation with a Hebb Rule .                          neuros vision
+Unsmearing Visual Motion: Development of Long-Range Horizontal Intrinsic Connect  neuros vision
+Detection of First and Second Order Motion,                                       neuros vision
+An Analog VLSI Chip for Finding Edges from Zero-crossings .                       applic vision
+Emergence of Topography and Complex Cell Properties from Natural Images using Ex  algori vision
+A Model of Feedback to the Lateral Geniculate Nucleus                             neuros vision
+Neural Network Based Model Predictive Control,                                    applic reinfo
+Learning from User Feedback in Image Retrieval Systems,                           applic reinfo
+Boosting Algorithms as Gradient Descent,                                          theory algori
+Iterative Construction of Sparse Polynomial Approximations                        theory algori
+Ensemble and Modular Approaches for Face Detection: A Comparison,                 vision algori
+Recursive Estimation of Dynamic Modular RBF Networks                              algori theory
+H-INFINTY OPTIMAL TRAINING ALGORITHMS AND THEIR RELATION TO BACKPROPAGATION       algori theory
+Intersecting Regions: The Key to Combinatorial Structure in Hidden Unit Space     vision theory
+Comparing Biases for Minimal Network Construction with Back-Propagation           algori theory
+Constructing Hidden Units Using Examples and Queries ..                           algori theory
+Network Structuring and Training Using Rule-based Knowledge                       algori cognit
+Learning Statistically Neutral Tasks without Expert Guidance,                     algori cognit
+FORWARD DYNAMIC MODELS IN HUMAN MOTOR CONTROL: PSYCHOPHYSICAL EVIDENCE            reinfo cognit
+A Neurodynamical Approach to Visual Attention,                                    neuros cognit
+Analog Neural Networks as Decoders .                                              algori cognit
+Network Model of State-Dependent Sequencing                                       neuros signal
+Some Estimates of Necessary Number of Connections and Hidden Units for Feed-Forw  theory signal
+Dynamic Features for Visual Speechreading: A Systematic Comparison,               vision signal
+A New Learning Algorithm for Blind Signal Separation                              algori signal
+The Recurrent Cascade-Correlation Architecture .                                  algori signal
+A Generic Approach for Identification of Event Related Brain Potentials via a Co  neuros applic
+A Computational Basis for Phonology                                               cognit applic
+Salient Contour Extraction by Temporal Binding in a Cortically-based Network,     vision applic
+Adaptive Development of Connectionist Decoders for Complex Error-Correcting Code  algori applic
+
+

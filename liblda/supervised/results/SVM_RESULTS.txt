@@ -1,0 +1,73 @@
+
+
+
+In [133]: %run support_vector_machines.py
+( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
+In [134]: SVMparams = do_grid_search(allX, allY)
+
+In [135]: SVMparams
+Out[135]: {'rbfsvm__C': 5, 'rbfsvm__gamma': 1}
+
+In [136]: sv = train_svpipe(trainX, trainY, SVMparams)
+
+In [141]: allTitles = load_titles(NIPSDIR)
+
+In [137]: evaluate(sv, testX, testY, testTitles=allTitles[test_ids])
+
+[[10  0  0  0  0  0  0  0]
+ [ 1  3  0  3  0  0  1  2]
+ [ 0  0  8  1  0  0  0  1]
+ [ 0  0  0 10  0  0  0  0]
+ [ 0  0  1  2  6  1  0  0]
+ [ 3  1  0  3  0  2  0  1]
+ [ 1  1  0  3  0  0  3  2]
+ [ 1  0  0  2  0  0  1  6]]
+                                    precision    recall  f1-score   support
+
+                      neuroscience       0.62      1.00      0.77        10
+                            vision       0.60      0.30      0.40        10
+reinforcement learning and control       0.89      0.80      0.84        10
+                        algorithms       0.42      1.00      0.59        10
+                            theory       1.00      0.60      0.75        10
+                 cognitive science       0.67      0.20      0.31        10
+ signal processing and time series       0.60      0.30      0.40        10
+                      applications       0.50      0.60      0.55        10
+
+                       avg / total       0.66      0.60      0.58        80
+
+Paper title                                                                       predic true  
+________________________________________________________________________________  ______ ______
+Feature Densities Are Required for Computing Feature Correspondences              applic vision
+Emergence of Topography and Complex Cell Properties from Natural Images using Ex  algori vision
+Applications of Neural Networks in Video Signal Processing                        applic vision
+Some Solutions to the Missing Feature Problem in Vision                           algori vision
+Search for Information Bearing Components in Speech,                              signal vision
+Unsupervised Pixel-prediction                                                     neuros vision
+Learning Sparse Codes with a Mixture-of-Gaussians Prior,                          algori vision
+A Self-organizing Associative Memory System for Control Applications              applic reinfo
+Using Local Models to Control Movement                                            algori reinfo
+Dynamic, Non-Local Role Bindings and Inferencing in a Localist Network for Natur  cognit theory
+Sequential Decision Problems and Neural Networks                                  reinfo theory
+An Apobayesian Relative of Winnow,                                                algori theory
+Training a 3-Node Neural Network is NP-Complete                                   algori theory
+Synchronized Auditory and Cognitive 40 Hz Attentional Streams, and the Impact of  neuros cognit
+Spherical Units as Dynamic Consequential Regions .                                algori cognit
+Human Reading and the Curse of Dimensionality                                     applic cognit
+Text-Based Information Retrieval Using Exponentiated Gradient Descent,            algori cognit
+Perceptual Organization Based on Temporal Dynamics,                               vision cognit
+Learning the Structure of Similarity                                              algori cognit
+CATASTROPHIC INTERFERENCE IN HUMAN MOTOR LEARNING                                 neuros cognit
+Utilizing lime: Asynchronous Binding,                                             neuros cognit
+Signal Processing by Multiplexing and Demultiplexing in Neurons .                 neuros signal
+VISUAL SPEECH RECOGNITION WITH STOCHASTIC NETWORKS                                vision signal
+ART2/BP Architecture for Adaptive Estimation of Dynamic Processes                 algori signal
+Broadband Direction-Of-Arrival Estimation Based on Second Order Statistics,       applic signal
+A Hybrid Linear/Nonlinear Approach to Channel Equilization Problems               algori signal
+Modeling Acoustic Correlations by Factor Analysis,                                algori signal
+SINGLE TRANSISTOR LEARNING SYNAPSES                                               applic signal
+Analog VLSI Model of lntersegmental Coordination with Nearest-Neighbor Coupling,  neuros applic
+Robot Docking Using Mixtures of Gaussians,                                        algori applic
+A Novel Channel Selection System in Cochlear Implants Using Artificial Neural Ne  signal applic
+Generalized Model Selection for Unsupervised Learning in High Dimensions,         algori applic
+
+
