@@ -100,43 +100,44 @@ RUNDIRS_ROOT = "../runs/"
 mstar = LdaModel(numT=NUM_TOPICS, corpus=NIPS_corpus, alpha=0.01, beta=0.01)
 mstar.allocate_arrays()
 mstar.read_dw_alphabetical()
-rd = os.path.join( RUNDIRS_ROOT, "lab7-24/run0021/" )
+rd = os.path.join( RUNDIRS_ROOT, "reduced1/" )
+#rd = os.path.join( RUNDIRS_ROOT, "lab7-24/run0021/" )
 mstar.load_from_rundir(rd)
 
 
 # load the merged model
-mrgd = LdaModel(numT=NUM_TOPICS, corpus=NIPS_corpus, alpha=0.005, beta=0.01)
-mrgd.allocate_arrays()
-mrgd.read_dw_alphabetical()
-rd = os.path.join( RUNDIRS_ROOT, "merge40-a0_005-b0_01/" )
-mrgd.load_from_rundir(rd)
+#mrgd = LdaModel(numT=NUM_TOPICS, corpus=NIPS_corpus, alpha=0.005, beta=0.01)
+#mrgd.allocate_arrays()
+#mrgd.read_dw_alphabetical()
+#rd = os.path.join( RUNDIRS_ROOT, "merge40-a0_005-b0_01/" )
+#mrgd.load_from_rundir(rd)
 
 
 
 # setup the dirs models to be merged
-m_dir_list = []
-for num in range(22,41):
-    rd = os.path.join( RUNDIRS_ROOT, "lab7-24/run00"+str(num)+"/" )
-    m_dir_list.append(rd)
-    # i am not preloading models because I fear i will run out of MEM
+#m_dir_list = []
+#for num in range(22,41):
+#    rd = os.path.join( RUNDIRS_ROOT, "lab7-24/run00"+str(num)+"/" )
+#    m_dir_list.append(rd)
+#    # i am not preloading models because I fear i will run out of MEM
 
 
 
-mdir = m_dir_list[0]
-mnew = LdaModel(numT=1, corpus=NIPS_corpus)
-mnew.load_from_rundir(mdir)
+#mdir = m_dir_list[0]
+#mnew = LdaModel(numT=1, corpus=NIPS_corpus)
+#mnew.load_from_rundir(mdir)
 
 
-qFnew  = genrate_quality_F(mnew.phi, mnew.theta)
-qFstar = genrate_quality_F(mstar.phi, mstar.theta)
+#qFnew  = genrate_quality_F(mnew.phi, mnew.theta)
+#qFstar = genrate_quality_F(mstar.phi, mstar.theta)
 
-print " In [15]: %run liblda/ILDA/topic_merging.py "
+#print " In [15]: %run liblda/ILDA/topic_merging.py "
 
-numT=50
-mk = topic_merging_fixed_size(range(0,numT), range(0,numT), mstar.phi, mnew.phi, qFstar, qFnew, eps_match=0.2)
+#numT=50
+#mk = topic_merging_fixed_size(range(0,numT), range(0,numT), mstar.phi, mnew.phi, qFstar, qFnew, eps_match=0.2)
 
 
-Metric = mk['costM']
+#Metric = mk['costM']
 
 
 #(M, Mperm, perm1, perm2) = bulgarian_algorithm_w_perms(Metric, 0.2, qF_rows=qFstar)
@@ -159,7 +160,7 @@ Metric = mk['costM']
 
 #phi_m0gibbs   = np.load("../runs/new_merging_gibbs0/phi.npy")
 #theta_m0gibbs = np.load("../runs/new_merging_gibbs0/theta.npy")
-z_m0gibbs     = np.load("../runs/new_merging_gibbs0/z.npy")
+#z_m0gibbs     = np.load("../runs/new_merging_gibbs0/z.npy")
 
 
 

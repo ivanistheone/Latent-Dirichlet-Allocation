@@ -964,7 +964,6 @@ class LdaModel(interfaces.LdaModelABC):
         #self.wpdt_to_probs()
         self.conv_qdp_to_qtheta()
 
-
         logger.info("Finished inference.")
         return self.qtheta
         
@@ -1028,21 +1027,17 @@ class LdaModel(interfaces.LdaModelABC):
 
     def qrandom_initialize(self):
         """
-        Goes through `self.z` and assigns random choice of topic for
-        each of the tokens in each of the documents.
+        Goes through `self.qz` and assigns random choice of topic 
+        for each of the tokens according to self.phi \equiv self.wp
 
-        The ranzom choices of `z` and then 
-        update the countsd in `ztot`, `wp` and `dp`.
         """
-        logger.info("Random assignment of query topic indicator variable self.z started")
-        ntotq = len(self.qz)  # = N  = totalNwords
 
+        ntotq = len(self.qz)  # = QN  = totalQNwords
+        
         # pick list of random topics
         randomqz  = np.random.randint(0, high=self.numT, size=ntotq)
         self.set_qz_and_compute_counts_in_C( randomqz )
-
         logger.info("Random assignment of self.qz done")
-
 
     def set_qz_and_compute_counts_in_C(self, z_new):
         """
@@ -1063,7 +1058,7 @@ class LdaModel(interfaces.LdaModelABC):
         qw  = self.qw
         qd  = self.qd
         qdp = self.qdp
-
+    
         code = """ // updating qdp 
         int i, t;
         for(i=0; i<qntot; i++){
@@ -1182,7 +1177,7 @@ class LdaModel(interfaces.LdaModelABC):
 
                     // decrement all counts
                     oldt = (int) qz[i];
-                    qdp[doc_id*T + oldt]--;
+                    QDP2(doc_id,oldt)=QDP2(doc_id,oldt)-1;
                     //wp[  w_id*T + oldt]--;
                     //ztot[oldt]--;
 
@@ -1228,10 +1223,8 @@ class LdaModel(interfaces.LdaModelABC):
                     }
 
                     qz[i] = newt;
-                    qdp[doc_id*T + newt]++;
-                    //wp[  w_id*T + newt]++;
-                    //ztot[newt]++;
-
+                    //qdp[doc_id*T + newt]++;
+                    QDP2(doc_id,newt)=QDP2(doc_id,newt)+1;
                 }
            }
 
