@@ -1,73 +1,140 @@
 
 
-
-In [133]: %run support_vector_machines.py
-( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
-In [134]: SVMparams = do_grid_search(allX, allY)
-
-In [135]: SVMparams
-Out[135]: {'rbfsvm__C': 5, 'rbfsvm__gamma': 1}
-
-In [136]: sv = train_svpipe(trainX, trainY, SVMparams)
-
-In [141]: allTitles = load_titles(NIPSDIR)
-
-In [137]: evaluate(sv, testX, testY, testTitles=allTitles[test_ids])
-
-[[10  0  0  0  0  0  0  0]
- [ 1  3  0  3  0  0  1  2]
- [ 0  0  8  1  0  0  0  1]
- [ 0  0  0 10  0  0  0  0]
- [ 0  0  1  2  6  1  0  0]
- [ 3  1  0  3  0  2  0  1]
- [ 1  1  0  3  0  0  3  2]
- [ 1  0  0  2  0  0  1  6]]
+In [22]: demo.run_SVM()
+ LOADING Corpus Data from: /Projects/LatentDirichletAllocation/data/NIPS1-17/
+ LOADING Corpus Data from: /Projects/LatentDirichletAllocation/data/NIPS1-17/
+[[9 1 0 0 0 0 0 0]
+ [1 9 0 0 0 0 0 0]
+ [1 0 8 1 0 0 0 0]
+ [0 0 0 9 1 0 0 0]
+ [0 0 0 2 6 1 0 1]
+ [1 0 1 3 0 5 0 0]
+ [2 2 0 1 0 0 5 0]
+ [0 2 0 0 0 0 1 7]]
                                     precision    recall  f1-score   support
 
-                      neuroscience       0.62      1.00      0.77        10
-                            vision       0.60      0.30      0.40        10
+                      neuroscience       0.64      0.90      0.75        10
+                            vision       0.64      0.90      0.75        10
 reinforcement learning and control       0.89      0.80      0.84        10
-                        algorithms       0.42      1.00      0.59        10
-                            theory       1.00      0.60      0.75        10
-                 cognitive science       0.67      0.20      0.31        10
- signal processing and time series       0.60      0.30      0.40        10
-                      applications       0.50      0.60      0.55        10
+                        algorithms       0.56      0.90      0.69        10
+                            theory       0.86      0.60      0.71        10
+                 cognitive science       0.83      0.50      0.62        10
+ signal processing and time series       0.83      0.50      0.62        10
+                      applications       0.88      0.70      0.78        10
 
-                       avg / total       0.66      0.60      0.58        80
+                       avg / total       0.77      0.72      0.72        80
 
-Paper title                                                                       predic true  
-________________________________________________________________________________  ______ ______
-Feature Densities Are Required for Computing Feature Correspondences              applic vision
-Emergence of Topography and Complex Cell Properties from Natural Images using Ex  algori vision
-Applications of Neural Networks in Video Signal Processing                        applic vision
-Some Solutions to the Missing Feature Problem in Vision                           algori vision
-Search for Information Bearing Components in Speech,                              signal vision
-Unsupervised Pixel-prediction                                                     neuros vision
-Learning Sparse Codes with a Mixture-of-Gaussians Prior,                          algori vision
-A Self-organizing Associative Memory System for Control Applications              applic reinfo
-Using Local Models to Control Movement                                            algori reinfo
-Dynamic, Non-Local Role Bindings and Inferencing in a Localist Network for Natur  cognit theory
-Sequential Decision Problems and Neural Networks                                  reinfo theory
-An Apobayesian Relative of Winnow,                                                algori theory
-Training a 3-Node Neural Network is NP-Complete                                   algori theory
-Synchronized Auditory and Cognitive 40 Hz Attentional Streams, and the Impact of  neuros cognit
-Spherical Units as Dynamic Consequential Regions .                                algori cognit
-Human Reading and the Curse of Dimensionality                                     applic cognit
-Text-Based Information Retrieval Using Exponentiated Gradient Descent,            algori cognit
-Perceptual Organization Based on Temporal Dynamics,                               vision cognit
-Learning the Structure of Similarity                                              algori cognit
-CATASTROPHIC INTERFERENCE IN HUMAN MOTOR LEARNING                                 neuros cognit
-Utilizing lime: Asynchronous Binding,                                             neuros cognit
-Signal Processing by Multiplexing and Demultiplexing in Neurons .                 neuros signal
-VISUAL SPEECH RECOGNITION WITH STOCHASTIC NETWORKS                                vision signal
-ART2/BP Architecture for Adaptive Estimation of Dynamic Processes                 algori signal
-Broadband Direction-Of-Arrival Estimation Based on Second Order Statistics,       applic signal
-A Hybrid Linear/Nonlinear Approach to Channel Equilization Problems               algori signal
-Modeling Acoustic Correlations by Factor Analysis,                                algori signal
-SINGLE TRANSISTOR LEARNING SYNAPSES                                               applic signal
-Analog VLSI Model of lntersegmental Coordination with Nearest-Neighbor Coupling,  neuros applic
-Robot Docking Using Mixtures of Gaussians,                                        algori applic
-A Novel Channel Selection System in Cochlear Implants Using Artificial Neural Ne  signal applic
-Generalized Model Selection for Unsupervised Learning in High Dimensions,         algori applic
+________________________________________________________________________________ _________ _________
+Paper title                                                                      predicted true      NIPS Label
+________________________________________________________________________________ _________ _________
+A Hierarchical Model of Visual Rivalry,                                          vision    neuroscie Neuroscience
+Decoding of Neuronal Signals in Visual Pattern Recognition                       neuroscie vision    Vision
+A Neural Net Model for Adaptive Control of Saccadic Accuracy by Primate Cerebell neuroscie reinforce Control and Planning
+Using Local Models to Control Movement                                           algorithm reinforce Optimisation and Control
+Replicator Equations, Maximal Cliques, and Graph Isomorphism,                    theory    algorithm Algorithms and Architectures
+Learning to See Where and What: Training a Net to Make Saccades and Recognize Ha applicati theory    Stochastic Learning and Analysis
+Hoo Optimality Criteria for LMS and Backpropagation                              algorithm theory    Learning Theory, Generalisation and Complexity
+Using Prior Knowledge in a NNDPA to Learn Context-Free Languages                 cognitive theory    Learning and Generalisation
+Holographic Recurrent Networks                                                   algorithm theory    Learning and Generalisation
+A Neurodynamical Approach to Visual Attention,                                   neuroscie cognitive Cognitive Science
+FORWARD DYNAMIC MODELS IN HUMAN MOTOR CONTROL: PSYCHOPHYSICAL EVIDENCE           reinforce cognitive Cognitive Science
+Emergence of Global Structure from Local Associations                            algorithm cognitive Cognitive Science
+Spherical Units as Dynamic Consequential Regions .                               algorithm cognitive Language and Cognition
+Rules and Similarity in Concept Learning,                                        algorithm cognitive Cognitive Science
+Selective Attention for Handwritten Digit Recognition                            vision    signal pr Speech and Signal Processing
+Spectral Cues in Human Sound Localization,                                       neuroscie signal pr Speech, Handwriting and Signal Processing
+Dynamic Features for Visual Speechreading: A Systematic Comparison,              vision    signal pr Speech, Handwriting and Signal Processing
+Bayesian Modelling of fMR[ Time Series,                                          neuroscie signal pr Speech, Handwriting and Signal Processing
+A Hybrid Linear/Nonlinear Approach to Channel Equilization Problems              algorithm signal pr Speech and Signal Processing
+Illumination-Invariant Face Recognition with a Contrast Sensitive Silicon Retina vision    applicati Applications
+SEEMORE: A View-based Approach to 3-D Object Recognition Using Multiple Visual C vision    applicati Applications
+Use of Multi-Layered Networks for Coding Speech with Phonetic Features           signal pr applicati Applications
+
+
+
+
+
+
+
+
+
+In [1]: %run ../../../LatentDirichletAllocation/liblda/supervised/load_data.py
+
+In [2]: %run ../../../LatentDirichletAllocation/liblda/supervised/common.py
+
+In [3]: %run ../../../LatentDirichletAllocation/liblda/supervised/support_vector_machines.py
+ LOADING Corpus Data from: /CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/
+called:
+( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
+
+
+In [7]: allLabels = load_labels(NIPSDIR)
+
+In [8]: allTitles = load_titles(NIPSDIR)
+ LOADING Corpus Data from: /CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/
+
+
+In [11]: SVMparams = do_grid_search(allX, allY)
+
+In [12]: sv = train_svpipe(trainX, trainY, SVMparams)
+
+In [13]: evaluate(sv, testX, testY, testTitles=allTitles[test_ids], testLabels=allLabels[test_ids])
+
+[[10  0  0  0  0  0  0  0]
+ [ 3  4  0  2  0  0  1  0]
+ [ 0  0 10  0  0  0  0  0]
+ [ 0  0  0  8  1  0  1  0]
+ [ 0  1  1  3  4  0  0  1]
+ [ 0  0  1  4  0  4  0  1]
+ [ 0  1  0  2  1  2  2  2]
+ [ 0  0  1  2  0  0  1  6]]
+                                    precision    recall  f1-score   support
+
+                      neuroscience       0.77      1.00      0.87        10
+                            vision       0.67      0.40      0.50        10
+reinforcement learning and control       0.77      1.00      0.87        10
+                        algorithms       0.38      0.80      0.52        10
+                            theory       0.67      0.40      0.50        10
+                 cognitive science       0.67      0.40      0.50        10
+ signal processing and time series       0.40      0.20      0.27        10
+                      applications       0.60      0.60      0.60        10
+
+                       avg / total       0.61      0.60      0.58        80
+
+________________________________________________________________________________ _________ _________
+Paper title                                                                      predicted true      NIPS Label
+________________________________________________________________________________ _________ _________
+The Gamma MLP for Speech Phoneme Recognition                                     signal pr vision    Vision
+Scale Mixtures of Gaussians and the Statistics of Natural Images,                algorithm vision    Visual Processing
+Unsmearing Visual Motion: Development of Long-Range Horizontal Intrinsic Connect neuroscie vision    Visual Processing
+Optimal Sampling of Natural Images .                                             neuroscie vision    Visual Processing
+Stimulus Encoding By Multidimensional Receptive Fields in Single Cells and Cell  neuroscie vision    Visual Processing
+Learning Fuzzy Rule-Based Neural Networks for Control                            algorithm vision    Visual Processing
+Unsupervised Learning in Neurodynamics Using the Phase Velocity Field Approach   theory    algorithm New Learning Algorithms
+Hierarchical Recurrent Neural Networks for Long-term Dependencies                signal pr algorithm Algorithms and Architectures
+The Efficiency and the Robustness of Natural Gradient Descent Learning Rule,     algorithm theory    Theory
+Semiparametric Approach to Multichannel Blind Deconvolution of Nonminimum Phase  algorithm theory    Theory
+Efficient Pattern Recognition Using a New Transformation Distance                applicati theory    Learning and Generalisation
+Sequential Decision Problems and Neural Networks                                 reinforce theory    Theoretical Analyses
+Neural Networks for Model Matching and Perceptual Organization                   vision    theory    Structured Networks
+A Back-Propagation Algorithm with Optimal Use of Hidden Units                    algorithm theory    Structured Networks
+Learning the Structure of Similarity                                             algorithm cognitive Cognitive Science
+Emergence of Global Structure from Local Associations                            algorithm cognitive Cognitive Science
+Comparison of Human and Machine Word Recognition,                                applicati cognitive Cognitive Science
+Learning Statistically Neutral Tasks without Expert Guidance,                    algorithm cognitive Cognitive Science
+Multiple Paired Forward-Inverse Models for Human Motor Learning and Control      reinforce cognitive Cognitive Science
+Spherical Units as Dynamic Consequential Regions .                               algorithm cognitive Language and Cognition
+Dual Kalman Filtering Methods for Nonlinear Prediction, Smoothing and Estimation algorithm signal pr Speech, Handwriting and Signal Processing
+Training Stochastic Model Recognition Algorithms as Networks can Lead to Maximum algorithm signal pr Speech and Signal Processing
+Learning Time-varying Concepts .                                                 theory    signal pr Temporal Reasoning
+A Constructive RBF Network for Writer Adaptation,                                applicati signal pr Speech, Handwriting and Signal Processing
+Coding lime- Varying Signals Using Sparse,  Shift-Invariant Representations,     applicati signal pr Speech, Handwriting and Signal Processing
+From Speech Recognition to Spoken Language Understanding .                       cognitive signal pr Speech
+An Oscillatory Correlation Framework for Computational Auditory Scene Analysis,  cognitive signal pr Speech, Handwriting and Signal Processing
+Bayesian Robustification for Audio Visual Fusion,                                vision    signal pr Speech, Handwriting and Signal Processing
+Neural Network Analysis of Event Related Potentials and Electroencephalogram Pre signal pr applicati Applications
+DIRECT MULTI-STEP TIME SERIES PREDICTION USING TD(LAMBDA)                        algorithm applicati Implementation
+INTERFERENCE IN LEARNING INTERNAL MODELS OF INVERSE DYNAMICS IN HUMANS           reinforce applicati Applications
+RECOGNIZING HANDWRITEN DIGITS USING MIXTURES OF LINEAR MODELS                    algorithm applicati Applications
 
 

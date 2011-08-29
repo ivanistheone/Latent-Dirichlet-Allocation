@@ -67,7 +67,7 @@ def reg_param_search( th1000, categories, dir=None):
 
 
 
-def evaluate(model, testX, testY, testTitles=None):
+def evaluate(model, testX, testY, testTitles=None, testLabels=None):
     """ Shows all the performance of `model` at predicting
         the testY from the testX
     """
@@ -79,6 +79,11 @@ def evaluate(model, testX, testY, testTitles=None):
     n_of_cats=names_of_categories
 
 
+    lnamesf = open( os.path.join(dir, 'NIPS_label_names.txt') )
+    label_names = dict(enumerate( [w.strip() for w in lnamesf.readlines() ] ))
+    lnamesf.close()
+
+
     predicted = model.predict(testX)
 
     print metrics.confusion_matrix(testY, predicted)
@@ -87,15 +92,30 @@ def evaluate(model, testX, testY, testTitles=None):
     size = len(testY)
 
     if testTitles is not None:
+        
+        if testLabels is not None:
+            label_heading = "NIPS Label"
+        else:
+            label_heading = ""
+        
         print ("_"*80),                "_________", "_________"
-        print "Paper title".ljust(80), "predicted", "true     "
+        print "Paper title".ljust(80), "predicted", "true     ", label_heading
         print ("_"*80),                "_________", "_________"
         for i in range(0, size):
             pred = predicted[i]
             true = testY[i]
             if pred != true:
-                print testTitles[i][0:80].ljust(80), n_of_cats[pred][0:9].ljust(9), n_of_cats[true][0:9].ljust(9)
-
+                title = testTitles[i][0:80].ljust(80)
+                pred_str= n_of_cats[pred][0:9].ljust(9)
+                true_str= n_of_cats[true][0:9].ljust(9)
+                if testLabels is not None:
+                    label_id = testLabels[i]
+                    label = label_names[label_id]
+                else:
+                    label = ""
+                print title, pred_str, true_str, label
+                # print testTitles[i][0:80].ljust(80), 
+                #n_of_cats[pred][0:9].ljust(9), n_of_cats[true][0:9].ljust(9)
 
 
             

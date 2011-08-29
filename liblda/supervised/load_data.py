@@ -90,5 +90,21 @@ def load_titles(dataset, truncate_to=70):
 
 
 
+def load_labels(dataset, truncate_to=70):
+    """ Given a dataset dir which contains a NIPS_doc_titles.txt 
+        this function will
+        return the document titles as a list.
 
-    
+        """
+    if not os.path.exists( dataset ):
+        print "Error: dataset dir does not exist..."
+        return -1
+
+    dir=dataset
+ 
+    labelsf = open( os.path.join(dir, 'NIPS_labels.txt') )
+    labels  = [ int(w.strip()) for w in labelsf.readlines() ]
+    labelsf.close()
+
+    return np.array(labels)
+
