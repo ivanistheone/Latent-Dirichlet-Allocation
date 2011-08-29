@@ -888,7 +888,7 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Loading LDA model from disk")
 
         # load the essential ones
-        for var in ["z","alpha", "beta"]:
+        for var in ["z"]: #,"alpha", "beta"]:
             fname = os.path.join( rundir, var+".npy")
             if not os.path.exists( fname ):
                 raise IncompleteInputError('Cannot find '+var+".npy in rundir "+ rundir )
@@ -922,9 +922,15 @@ class LdaModel(interfaces.LdaModelABC):
 
         # set  params
         self.numDocs, self.numT = self.dp.shape
-        self.numTerms = len(self.beta)
+        self.numTerms = self.wp.shape[0]
         self.totalNwords = len(self.z)
 
+
+        # setup alpha and beta
+        if not hasattr(self.alpha, "__iter__"):      # if \alpha is not list like
+            self.alpha = self.alpha*np.ones(self.numT)
+        if not hasattr(self.beta, "__iter__"):
+            self.beta = beta*np.ones(self.numTerms)
 
         # compute the probs
         self.wpdt_to_probs()
@@ -938,7 +944,16 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
+
     ##### INFERENCE ################################################################################
+
+
+
+
+
+
+
+
 
     def inference(self, qcorpus, iter=100, seed=3):
         """ Returns the inferred theta matrix for the query corpus """
@@ -1278,3 +1293,34 @@ class LdaModel(interfaces.LdaModelABC):
         self.qtheta = input
 
 
+
+    def qloglike(self, recompute=True):
+        """
+        Compute the log likelyhood of the corpus
+        under current `phi` and `theta` distributions
+
+        assumes that accessing the corpus is expensive
+        so goes though the lists `self.w` and `self.d` instead
+
+        if corpus is in RAM also, then more efficient to use term_counts
+        """
+        if hasattr(self, 'qloglike_val') and not recompute:
+            return self.qloglike_val
+        else:
+            sum=0.0
+            for i in range(0,self.qcorpus.totalNwords):
+                sum += np.log( np.inner( self.phi[:,self.qw[i]], self.qtheta[self.qd[i],:] ) )
+            self.qloglike_val = sum
+            return self.qloglike_val
+
+
+    def qperplexity(self, recompute=True):
+        """ Compute the perplexity of corpus = exp( - loglike / totalNwords ) """
+        if hasattr(self, 'qperplexity_val') and not recompute:
+            return self.qperplexity_val
+        else:
+            self.qperplexity_val =  np.exp( -1.0*self.qloglike()/self.qcorpus.totalNwords )
+            return self.qperplexity_val
+                
+                
+                
