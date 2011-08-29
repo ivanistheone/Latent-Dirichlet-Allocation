@@ -10,11 +10,13 @@ from liblda.supervised import support_vector_machines
 
 from liblda.supervised.common import evaluate
 
+
+
+
 NIPSDIR = "/Projects/LatentDirichletAllocation/data/NIPS1-17/"
 catsf = open( os.path.join(NIPSDIR, 'NIPS_categories.txt'), 'r' )
 categories = np.array( [ int( cid.strip() ) for cid in catsf.readlines() ] )
 catsf.close()
-
 
 
 import logging

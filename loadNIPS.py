@@ -139,7 +139,7 @@ mk = topic_merging_fixed_size(range(0,numT), range(0,numT), mstar.phi, mnew.phi,
 Metric = mk['costM']
 
 
-(M, Mperm, perm1, perm2) = bulgarian_algorithm_w_perms(Metric, 0.2, qF_rows=qFstar)
+#(M, Mperm, perm1, perm2) = bulgarian_algorithm_w_perms(Metric, 0.2, qF_rows=qFstar)
 
 
 

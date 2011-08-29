@@ -364,7 +364,6 @@ class LdaModel(interfaces.LdaModelABC):
         The change in `z` is also accounted for by recomputing 
             `ztot`, `wp` and `dp`.
 
-        TODO: rewrite in C -- it is kind of slow now.
         """
         logger.info("Replacing topic indicator variable self.z with z_new")
         ntot = len(self.z)      # = N  = totalNwords
@@ -938,8 +937,351 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
+
+    ##### INFERENCE ################################################################################
+
+    def inference(self, qcorpus, iter=100, seed=3):
+        """ Returns the inferred theta matrix for the query corpus """
+
+        #        if not hasattr(self, 'iter'):
+        self.iter=iter
+        #        if not hasattr(self, 'seed'):
+        self.seed=seed
+
+        self.qcorpus = qcorpus
+        self.numQDocs = len(qcorpus)               # how do i make this lazy?
+                                            # assume Corpus object is smart
+                                            # and has cached its length ...
+        self.qtheta = None
+        self.qz = None
+
+
+        # subfunctions
+        self.allocate_qarrays()
+        self.read_qdw_alphabetical()
+        self.qrandom_initialize()
+        self.qgibbs_sample(iter=self.iter, seed=self.seed )
+        #self.wpdt_to_probs()
+        self.conv_qdp_to_qtheta()
+
+
+        logger.info("Finished inference.")
+        return self.qtheta
+        
+        
+        
+    def countQN(self):
+        """ Count the total number of words in query corpus        """
+        if hasattr(self, "totalQNwords") and self.totalQNwords != None:
+            return self.totalQNwords
+        # maybe the corpus has cached the totalNwords ?
+        if hasattr(self.qcorpus, "totalNwords") and self.qcorpus.totalNwords != None:
+            return self.qcorpus.totalNwords
+        else:
+            # corpus is not smart so must go through it
+            total=0L
+            for doc in self.qcorpus:
+                for word,cnt in doc:
+                    total += cnt
+            self.qcorpus.totalNwords = total
+            return total
+
+
+    def allocate_qarrays(self):
+        """
+        Allocates memory for the query arrays of counts which
+        will be necessary for the Gibbs sampler.
+
+        """
+        totalQNwords = self.countQN()     # this is the total n of tokens
+                                          # in the query corpus.
+        # The Gibbs sampling loop uses the "corpus" index i \in [0,1, ..., totalNwords -1 ]
+        # sometimes we will use i = (m,n) where m is the document id and n is the n-th word
+        # in the document m.  m \in [numDocs],   n \in [wc_of_dm]
+        self.qd = np.zeros(totalQNwords, dtype=np.int32) # the document id of token i (m)
+        self.qw = np.zeros(totalQNwords, dtype=np.int32) # the term id of token i  w[i] \in [numTerms]
+        self.qz    = np.zeros(totalQNwords, dtype=np.int32) # the topic of token i,   z[i] \in [numT]
+        self.qdp   = np.zeros( (self.numQDocs, self.numT), dtype=np.int32 )
+
+
+    def read_qdw_alphabetical(self):         # i.e. read_dw
+        """
+        Initizlizes the query corpus arrays with the correct joint index
+        i=(m,n)
+        where m is the document id  \in [numDocs]
+        and   n is a term id  \in [numTerms]
+        """
+        logger.info("Loading query corpus into self.qw and self.qd")
+
+        offset = 0          # running pointer through self.z, self.d
+        curdoc=0            # current document id
+        for doc in self.qcorpus:
+            for w,cntw in doc:
+                for i in range(0,cntw):
+                    self.qw[offset+i]  = w   # IS THIS THE FIX??? OMG!
+                    self.qd[offset+i]  = curdoc
+                offset += int(cntw)
+            curdoc += 1
+        logger.info("Done loading query corpus")
+
+
+
+    def qrandom_initialize(self):
+        """
+        Goes through `self.z` and assigns random choice of topic for
+        each of the tokens in each of the documents.
+
+        The ranzom choices of `z` and then 
+        update the countsd in `ztot`, `wp` and `dp`.
+        """
+        logger.info("Random assignment of query topic indicator variable self.z started")
+        ntotq = len(self.qz)  # = N  = totalNwords
+
+        # pick list of random topics
+        randomqz  = np.random.randint(0, high=self.numT, size=ntotq)
+        self.set_qz_and_compute_counts_in_C( randomqz )
+
+        logger.info("Random assignment of self.qz done")
+
+
+    def set_qz_and_compute_counts_in_C(self, z_new):
+        """
+        An appropirately sized topic assignment vector `z_new`,
+        we will be used to replace the current `self.qz`.
+        
+        The change in `z` is also accounted for by recomputing 
+        `qdp`.
+        """
+        logger.info("Replacing topic indicator variable self.qz with z_new")
+        qntot = len(self.qz)      # = N  = totalNwords
+        ntotbis = len(z_new)
+        assert qntot == ntotbis
+        # pick list of random topics
+        self.qz = z_new
+        self.qdp.fill(0)
+        qz  = self.qz
+        qw  = self.qw
+        qd  = self.qd
+        qdp = self.qdp
+
+        code = """ // updating qdp 
+        int i, t;
+        for(i=0; i<qntot; i++){
+            t = qz[i];   //        # set it to current token, and
+            QDP2(qd[i],t) += 1;
+        }
+        """
+        out = sp.weave.inline( code,
+           [ 'qntot',
+             'qz', 'qw', 'qd',          # inputs
+             'qdp'],                  # outputs
+           headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
+           compiler='gcc')
+        logger.info("self.qz has been set to z_new. qdp updated.")
             
 
+    def qgibbs_sample(self, iter=None, seed=None ):
+        """
+        Scipy.weave gibbs sampler called by inference()
+        """
+        
+        extra_code = """
+           // line 1089 in LDAmodel.py
+           double *dvec(int n) //
+           {
+             double *x = (double*)calloc(n,sizeof(double));
+             assert(x);
+             return x;
+           }
+        """
 
+        logger.info("Preparing numpy variables to be passed to the C code")
+
+        # longs
+        QN        = int( self.qcorpus.totalNwords )  # will be long long in C ?
+        # ints
+        numT     = int( self.numT )
+        numQDocs  = int( self.numQDocs )
+        numTerms = int( self.numTerms )
+
+        # 1D arrays
+        qz = self.qz
+        ztot = self.ztot
+        qd = self.qd
+        qw = self.qw
+        alpha = self.alpha
+        beta = self.beta
+
+        # 2D arrays
+        qdp = self.qdp
+        wp = self.wp
+
+        # just to be sure let's intify the Gibbs algo. params
+        if seed:
+            seed = int(seed)
+        else:
+            seed = int(self.seed)
+        if iter:
+            iter = int(iter)
+        else:
+            iter = int(self.iter)
+
+        # bonus
+        debug = np.zeros( 100 , dtype=np.int32)
+        debug2 = np.zeros( 100 , dtype=np.float64)
+
+
+        buf = sys.stdout        # to try to get output of printf scrolling
+
+        logger.info("Starting scipy.weave Gibbs sampler")
+
+        code = """  // query gibbs_sample C weave code  ///////////////////// START /////
+
+            int i;      // counter within z,d,w
+            int itr;    // Gibbs iteration counter
+
+            int t, k, oldt, newt;             // topic indices
+            int w_id, term;              // index over words --
+            int doc_id;                  // index over documents
+
+            int T;
+
+            // double *probs  ---> converted to cumprobs
+            double *cumprobs;                       // new
+            double prz, sumprz, currprob, U ;
+            int bsmin, bsmax, bsmid;                // for binary search
+
+            double sumalpha, sumbeta;
+
+            // seed the random num generator
+            srand48( seed );
+
+            // calculate total alpha and beta values
+            sumalpha = 0.0;
+            for(t=0; t<numT; t++) {
+                sumalpha += alpha[t];
+            }
+            sumbeta  = 0.0;
+            for(term=0; term<numTerms; term++) {
+                sumbeta += beta[term];
+            }
+
+            T = numT;
+            cumprobs = dvec(T);
+
+            printf("# of iterations = iter = %d\\n", iter);
+
+            for(itr=0; itr<iter; itr++) {
+
+                printf("itr = %d\\n", itr);
+
+                for(i=0; i<QN; i++) {
+
+                    w_id        = (int) qw[i];
+                    doc_id      = (int) qd[i];
+
+                    // decrement all counts
+                    oldt = (int) qz[i];
+                    qdp[doc_id*T + oldt]--;
+                    //wp[  w_id*T + oldt]--;
+                    //ztot[oldt]--;
+
+                    // fill up   cumprobs = CMF(  P(z| ...)  )
+                    sumprz = 0.0;
+                    for( t=0; t<numT; t++){
+                        prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(qdp[doc_id*T+t] + alpha[t]);
+                        sumprz  += prz;
+                        cumprobs[t] = sumprz;
+                    }
+
+                    //sample from probs
+                    U = sumprz * drand48();
+
+
+                    // Binary search in cumprobs
+                    newt = 0;
+                    bsmin = 0;
+                    bsmax = numT-1;                    
+                    for(;;)
+                    {
+                       bsmid =  (bsmin + bsmax) /2;
+                       currprob = cumprobs[bsmid];
+                       if (currprob  < U)
+                           bsmin = bsmid  + 1;
+                       else if (  bsmid==0   &&    currprob >= U  )
+                       {
+                         newt = 0;
+                         break;
+                       }
+                       else if (  cumprobs[bsmid-1]<U   &&  currprob >= U  )
+                       {
+                         newt = bsmid;
+                         break;
+                       }
+                       else if (currprob >  U)
+                           bsmax = bsmid - 1;
+                       else
+                       {
+                           printf("Shouldn't be here bro: %d \\n", bsmid);
+                           break;
+                       }
+                    }
+
+                    qz[i] = newt;
+                    qdp[doc_id*T + newt]++;
+                    //wp[  w_id*T + newt]++;
+                    //ztot[newt]++;
+
+                }
+           }
+
+
+            free(cumprobs);
+
+
+            //////////////////////////////////////////////////////////////  END ///
+
+        """
+
+        out = sp.weave.inline( code,
+               ['QN','numT', 'numQDocs','numTerms',   # constants
+                'qz', 'qd', 'qw',      # topic, document_id and term_id for i \in [totalNwords]
+                'ztot',             # total # tokens in corpus with topit t \in [numT]
+                'qdp', 'wp',         #
+                'alpha', 'beta',    # Dirichlet priors of self.theta and self.phi respectively
+                'iter', 'seed',     # gibbs specific params
+                'buf',
+                'debug', 'debug2' ],          #
+               support_code=extra_code,
+               headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
+               compiler='gcc')
+
+        logger.info("Finished query Gibbs sampling")
+
+        return out
+
+
+
+    def conv_qdp_to_qtheta(self):
+        """
+        converts the query topic counts per document in self.qdp
+        to a probability distibution
+          p(t|d)
+        rows are documents columns are topic proportions
+        """
+        numQDocs,numT = self.qdp.shape
+        input = np.array( self.qdp, dtype=np.float )
+
+        #                    N_td   + alpha[t]
+        #  p(t|d)     =  - ----------------------
+        #                 sum_t N_td   + sumalpha
+
+        sumalpha=np.sum(self.alpha)
+        totWinDocs = np.sum(input,1)
+        denom= totWinDocs + sumalpha
+        normalizer = 1.0/denom
+        for t in np.arange(0,numT):
+            input[:,t]=(input[:,t]+self.alpha[t])*normalizer
+        self.qtheta = input
 
 
