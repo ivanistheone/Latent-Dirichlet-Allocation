@@ -58,21 +58,31 @@ Use of Multi-Layered Networks for Coding Speech with Phonetic Features          
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 In [1]: %run ../../../LatentDirichletAllocation/liblda/supervised/load_data.py
 
 In [2]: %run ../../../LatentDirichletAllocation/liblda/supervised/common.py
 
 In [3]: %run ../../../LatentDirichletAllocation/liblda/supervised/support_vector_machines.py
- LOADING Corpus Data from: /CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/
-called:
-( (trainX,trainY,train_ids), (testX, testY,test_ids) ) = load_data(rundir, dataset=NIPSDIR, normalize_cols=False)
-
 
 In [7]: allLabels = load_labels(NIPSDIR)
 
 In [8]: allTitles = load_titles(NIPSDIR)
- LOADING Corpus Data from: /CurrentPorjects/LatentDirichletAllocation/data/NIPS1-17/
-
 
 In [11]: SVMparams = do_grid_search(allX, allY)
 
