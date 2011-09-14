@@ -1,0 +1,22 @@
+{
+"vocab": "vocab.txt", 
+"numT": 29, 
+"phi_sparseness_avg": 13.965517241379308, 
+"theta_sparseness_avg": 6.8181818181818183, 
+"numDocs": 220, 
+"start_time": "2011-09-11T14:41:00.011912", 
+"theta_sparseness_stdev": 7.0229258577394775, 
+"beta": 0.0050000000000000001, 
+"iter": 800, 
+"perplexity": 34.845226347057547, 
+"alpha": 0.01, 
+"seed": 22, 
+"loglike": -7027.2630622261986, 
+"phi_sparseness_stdev": 3.7827444755024247, 
+"numTerms": 239, 
+"duration": 1, 
+"host_id": "probook.lo", 
+"rundir": "/CurrentPorjects/LatentDirichletAllocation/data/david_dance/probook.lo/run0067", 
+"corpus": "docs.txt", 
+"totalNterms": 1979
+}

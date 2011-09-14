@@ -1,0 +1,11 @@
+{
+"numT": 29, 
+"vocab": "vocab.txt", 
+"iter": 800, 
+"beta": 0.0050000000000000001, 
+"seed": 22, 
+"host_id": "probook.lo", 
+"alpha": 0.01, 
+"rundir": "/CurrentPorjects/LatentDirichletAllocation/data/david_dance/probook.lo/run0067", 
+"corpus": "docs.txt"
+}
