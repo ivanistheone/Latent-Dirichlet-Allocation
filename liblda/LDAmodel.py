@@ -1116,7 +1116,6 @@ class LdaModel(interfaces.LdaModelABC):
 
         # 1D arrays
         qz = self.qz
-        ztot = self.ztot
         qd = self.qd
         qw = self.qw
         alpha = self.alpha
@@ -1124,7 +1123,10 @@ class LdaModel(interfaces.LdaModelABC):
 
         # 2D arrays
         qdp = self.qdp
-        wp = self.wp
+        #wp = self.wp
+        #ztot = self.ztot
+        phi = self.phi
+
 
         # just to be sure let's intify the Gibbs algo. params
         if seed:
@@ -1199,7 +1201,11 @@ class LdaModel(interfaces.LdaModelABC):
                     // fill up   cumprobs = CMF(  P(z| ...)  )
                     sumprz = 0.0;
                     for( t=0; t<numT; t++){
-                        prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(qdp[doc_id*T+t] + alpha[t]);
+
+                        prz = (double)  PHI2(t,w_id) * (qdp[doc_id*T+t] + alpha[t]);
+
+
+                        // prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(qdp[doc_id*T+t] + alpha[t]);
                         sumprz  += prz;
                         cumprobs[t] = sumprz;
                     }
@@ -1254,8 +1260,10 @@ class LdaModel(interfaces.LdaModelABC):
         out = sp.weave.inline( code,
                ['QN','numT', 'numQDocs','numTerms',   # constants
                 'qz', 'qd', 'qw',      # topic, document_id and term_id for i \in [totalNwords]
-                'ztot',             # total # tokens in corpus with topit t \in [numT]
-                'qdp', 'wp',         #
+                'qdp',              #
+                # 'wp',         # give counts instead of phi
+                #'ztot',             # total # tokens in corpus with topit t \in [numT]
+                'phi',              # new
                 'alpha', 'beta',    # Dirichlet priors of self.theta and self.phi respectively
                 'iter', 'seed',     # gibbs specific params
                 'buf',
