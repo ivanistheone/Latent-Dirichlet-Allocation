@@ -397,8 +397,8 @@ class LdaModel(interfaces.LdaModelABC):
            ['ntot',                 # params
             'z', 'w', 'd',          # inputs
             'wp', 'dp','ztot'],     # outputs
-           headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
-           compiler='gcc')
+            headers = ["<math.h>"],  
+            compiler='gcc')
 
         assert sum(self.ztot) == ntot
 
@@ -552,7 +552,7 @@ class LdaModel(interfaces.LdaModelABC):
             for(itr=0; itr<iter; itr++) {
 
                 //printf("itr = %d\\n", itr);
-                fprintf(buf, "itr = %d\\n", itr);
+                //fprintf(buf, "itr = %d\\n", itr);
 
                 for(i=0; i<N; i++) {
 
@@ -1085,8 +1085,7 @@ class LdaModel(interfaces.LdaModelABC):
            [ 'qntot',
              'qz', 'qw', 'qd',          # inputs
              'qdp'],                  # outputs
-           headers = ["<math.h>"],      # for isnan() ... but doesn't seem to work.
-           compiler='gcc')
+            headers = ["<math.h>"], compiler='gcc')
         logger.info("self.qz has been set to z_new. qdp updated.")
             
 
@@ -1185,7 +1184,7 @@ class LdaModel(interfaces.LdaModelABC):
 
             for(itr=0; itr<iter; itr++) {
 
-                printf("itr = %d\\n", itr);
+                //printf("itr = %d\\n", itr);
 
                 for(i=0; i<QN; i++) {
 
