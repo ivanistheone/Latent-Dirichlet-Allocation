@@ -1331,3 +1331,76 @@ class LdaModel(interfaces.LdaModelABC):
                 
                 
                 
+
+
+
+
+
+
+
+    ##### UTILITIES ##############################################################
+
+
+
+
+
+    def save( self, rundir, hyperparams=False, probs=True, counts=False, z=False):
+        """
+            Save the model to numpy arrays in `rundir`.
+            Dir is created if it doesn't exist.
+            File are overwritten without warning.
+        """
+
+        # FILENAMES for storing run output
+        RUN_FILENAMESS = {  "dp":"Ndt.npy",
+                    "wp":"Nwt.npy",
+                    "z":"z.npy",
+                    "phi":"phi.npy",
+                    "theta":"theta.npy",
+                    "alpha":"alpha.npy",    # the whole alpha array = prior on p(t|d) distribution
+                                            # if missing look in output.json["alpha"][0]
+                                            # [1] contains the variance of alpha vector
+                    "beta":"beta.npy"       # prior on p(w|t) distr.
+                                            # same as output.json["beta"][0]  if constant
+                 }
+
+        # SAVE TO...
+        if not os.path.exists( rundir ):
+            os.mkdir( rundir)
+
+        # 
+
+        # save word counts and topic assignment counts (these are sparse)
+        if counts:    # FALSE by default
+            state = ["dp", "wp"]
+            for var_name in state:
+                f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+                np.save( f_name, self.__getattribute__(var_name) )
+            logger.info("Done writing out Nwt.npy, Ndt.npy")
+
+        # hyperparameters
+        if hyperparams:    # FALSE by default
+            state = ["alpha", "beta" ]
+            for var_name in state:
+                f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+                np.save( f_name, self.__getattribute__(var_name) )
+            logger.info("Done writing out alpha.npy and beta.npy")
+
+        # Gibbs sampler state, which consists of
+        # the full  topic assignments "z.npy"
+        if z:
+            var_name="z"
+            f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+            np.save( f_name, self.__getattribute__(var_name) )
+            logger.info("Done writing out z.npy")
+
+        # save probs
+        if probs:
+            probs = ["phi", "theta"]
+            for var_name in probs:
+                f_name = os.path.join(rundir, RUN_FILENAMESS[var_name] )
+                np.save( f_name, self.__getattribute__(var_name) )
+            logger.info("Done writing out probabilities phi.npy and theta.npy")
+
+
+
