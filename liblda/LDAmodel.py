@@ -1,53 +1,21 @@
-
-
 import os,sys
-
 import numpy as np
 import scipy as sp
 
 
+from liblda import interfaces
+from local_settings import PROJECT_PATH, topicmodel_DIR, RUNDIRS_ROOT
+import datetime
+import logging
+
 __doc__ = """
-This module defines the class LdaModel which uses
-a Gibbs sampling approach (in C using scipy.weave)
-to infer the topics.
+This module defines the class LdaModel which uses a Gibbs 
+sampling approach (in C using scipy.weave) to infer the topics.
 """
 
-from liblda import interfaces
-
-
-# can be removed?
-#from liblda.util import rungen
-#from liblda.util import newman_topicmodel
-#import subprocess
-#import shutil
-
-
-# shouldn't be necessary
-from local_settings import PROJECT_PATH, topicmodel_DIR, RUNDIRS_ROOT
-
-import datetime
-
-
 DEBUG = True
-
-
-
-import logging
 logger = logging.getLogger('LdaModel')
 logger.setLevel(logging.INFO)
-
-
-# Errors accociated with this
-class IncompleteInputError(Exception):
-    """
-    The user didn't supply a corpus or numT
-    """
-    def __init__(self, msg):
-        self.msg = msg
-    def __str__(self):
-        return repr(self.msg)
-
-
 
 
 class LdaModel(interfaces.LdaModelABC):
@@ -93,17 +61,15 @@ class LdaModel(interfaces.LdaModelABC):
     def __init__(self, numT=None, alpha=None, beta=None, corpus=None,  vocab=None):
         """
         This creates the LDA model.
-
         Must supply corpus and numT before you can train() it.
         """
         self.numT = int(numT)               # number of topics
 
         self.corpus= corpus
-        self.numDocs = len(corpus)               # how do i make this lazy?
+        self.numDocs = len(corpus)          # how do i make this lazy?
                                             # assume Corpus object is smart
                                             # and has cached its length ...
 
-        # optional
         if not vocab and not hasattr(corpus, 'word2id'):
             # then we need to go thgouh corpus and see how many different terms are used
             # assume corpus used sequential term-ids so just find the max value
@@ -123,7 +89,6 @@ class LdaModel(interfaces.LdaModelABC):
         else:
             self.vocab    = vocab
             self.numTerms = len(vocab)
-            # assert maxTermID == len(vocab)
 
 
         # set default values for \alpha, \beta
@@ -159,8 +124,7 @@ class LdaModel(interfaces.LdaModelABC):
 
     def train(self, iter=50 ,seed=None):
         """
-        Runs a Gibbs sampler similar to Dave Newman's C code.
-
+        Runs a Gibbs sampler similar to Dave Newman's C code:
         1/ Create work arrays
             1.1/ Allocate memory
             1.2/ Load the indicator lists self.w and self.d from corpus
@@ -170,7 +134,6 @@ class LdaModel(interfaces.LdaModelABC):
                      Nwt.txt,   Ndt.txt,    z.txt
                      wp         dp
                      ~p(w|t)    ~p(t|d)     Z_{d_i,w_j}
-
         """
         if not self.numT:
             raise  IncompleInputError('Must specify number of topics: self.numT')
@@ -191,13 +154,12 @@ class LdaModel(interfaces.LdaModelABC):
         self.wpdt_to_probs()
         #self.deallocate_arrays()
 
+
     def countN(self):
         """ Count the total number of words in corpus
             this quantity is called N in Dave Newman's code
             and totalNwords in my code ... for now.
         """
-
-        
         if hasattr(self, "totalNwords") and self.totalNwords != None:
             return self.totalNwords
         # maybe the corpus has cached the totalNwords ?
@@ -232,7 +194,6 @@ class LdaModel(interfaces.LdaModelABC):
 
         totalNwords = self.countN()     # this is the total n of tokens
                                         # in the corpus. i.e.  wc -w corpus.txt
-
         # The Gibbs sampling loop uses the "corpus" index i \in [0,1, ..., totalNwords -1 ]
         # sometimes we will use i = (m,n) where m is the document id and n is the n-th word
         # in the document m.  m \in [numDocs],   n \in [wc_of_dm]
@@ -242,19 +203,14 @@ class LdaModel(interfaces.LdaModelABC):
         self.z    = np.zeros(totalNwords, dtype=np.int32) # the topic of token i,   z[i] \in [numT]
         self.ztot = np.zeros(self.numT,   dtype=np.int32)  # ztot[k] = total # of tokens in corpus
                                                             # that have been assigned to topic k
-
-
         # so far we have consumed  4*N  + T units of RAM
         # now come the two heavy hitters
-
         self.wp   = np.zeros( (self.numTerms, self.numT), dtype=np.int32 )
         # wp[w][t]  is the count of how many times the word w \in [numTerms]
         #           has been assigned to topic t \in [numT]
-
         self.dp   = np.zeros( (self.numDocs, self.numT), dtype=np.int32 )
         # dp[m][t]  is the count of words assigned to topic t \in [numT]
         #           in document m
-
         # RAM consumption += (numTerms + numDocs)*numT
 
 
@@ -271,7 +227,6 @@ class LdaModel(interfaces.LdaModelABC):
                         original word stream (pre-corpus since corpus is already BOW).
                         read_dw_prebow ?
         """
-
         logger.info("Loading corpus into self.w and self.d")
 
         offset = 0          # running pointer through self.z, self.d
@@ -291,8 +246,6 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Done loading corpus")
 
 
-
-
     def random_initialize(self):
         """
         Goes through `self.z` and assigns random choice of topic for
@@ -309,8 +262,6 @@ class LdaModel(interfaces.LdaModelABC):
         self.set_z_and_compute_counts_in_C( randomz )
 
         logger.info("Random assignment of self.z done")
-
-
 
 
     def set_z_and_compute_counts(self, z_new):
@@ -360,12 +311,11 @@ class LdaModel(interfaces.LdaModelABC):
         """
         An appropirately sized topic assignment vector `z_new`,
         we will be used to replace the current `self.z`.
-        
         The change in `z` is also accounted for by recomputing 
             `ztot`, `wp` and `dp`.
-
         """
         logger.info("Replacing topic indicator variable self.z with z_new")
+
         ntot = len(self.z)      # = N  = totalNwords
         ntotbis = len(z_new)
         assert ntot == ntotbis
@@ -399,7 +349,6 @@ class LdaModel(interfaces.LdaModelABC):
             'wp', 'dp','ztot'],     # outputs
             headers = ["<math.h>"],  
             compiler='gcc')
-
         assert sum(self.ztot) == ntot
 
         logger.info("self.z has been set to z_new. ztot, wp, dp updated.")
@@ -408,9 +357,7 @@ class LdaModel(interfaces.LdaModelABC):
 
 
     def gibbs_sample(self, iter=None, seed=None ):
-        """
-        Scipy.weave gibbs sampler called by train()
-        """
+        """ Scipy.weave gibbs sampler called by train() """
 
         extra_code = """
            // line 209 in LDAmodel.py
@@ -420,29 +367,11 @@ class LdaModel(interfaces.LdaModelABC):
              assert(x);
              return x;
            }
-
-            /*  given a T-vector of probs [0.1, 0.2, 0.33, 0.37 ]
-                will return an int \in [T]
-
-            int sample_probs( T, probs, total) {
-                int i;
-                i=2;
-                // probably not a good idea to make a fn call so
-                // cancelling this one and will do it in main loop
-            }
-
-                */
-
-
-
         """
-
-
         logger.info("Preparing numpy variables to be passed to the C code")
 
         # longs
         N        = int( self.corpus.totalNwords )  # will be long long in C ?
-
             # FIXME!!!
             # This will not work if total n words in corpus is greater than 4 bytes
             # on a 32bit machine (like in SOCS)
@@ -475,39 +404,27 @@ class LdaModel(interfaces.LdaModelABC):
         else:
             iter = int(self.iter)
 
-
         # bonus
         debug = np.zeros( 100 , dtype=np.int32)
         debug2 = np.zeros( 100 , dtype=np.float64)
-
 
         buf = sys.stdout        # to try to get output of printf scrolling
 
         logger.info("Starting scipy.weave Gibbs sampler")
 
-
-        code = """  // gibbs_sample C weave code  ///////////////////// START /////
-
-
-            int i;      // counter within z,d,w
-            int itr;    // Gibbs iteration counter
-
-            int t, k, oldt, newt;             // topic indices
-            int w_id, term;              // index over words --
-            int doc_id;                  // index over documents
-
+        code = """  
+            // gibbs_sample C weave code///////////////////// START /////
+            int i;                      // counter within z,d,w
+            int itr;                    // Gibbs iteration counter
+            int t, k, oldt, newt;       // topic indices
+            int w_id, term;             // index over words --
+            int doc_id;                 // index over documents
             int T;
-
             // double *probs  ---> converted to cumprobs
             double *cumprobs;                       // new
             double prz, sumprz, currprob, U ;
             int bsmin, bsmax, bsmid;                // for binary search
-
-
-
-
             double sumalpha, sumbeta;
-
 
             // seed the random num generator
             srand48( seed );
@@ -522,43 +439,29 @@ class LdaModel(interfaces.LdaModelABC):
                 sumbeta += beta[term];
             }
 
-
-
             T = numT;
-            /* note that both dp and wp
-               are "wrongly" defined as (*int) by weave when
-               in fact they are (**int), thus we have
-               to "manually" do the row access logic.
-
+            /* note that both dp and wp are "wrongly" defined as (*int) by weave when
+               in fact they are (**int), thus we have to "manually" do the row access logic.
                Each row of dp and wp is of size T=numT the number of topics.
-
                    dp[d][t] -->  dp[d*T + t]
                    wp[w][t] -->  wp[w*T + t]
-
-                it could be cleaner but hey...
-                */
+               it could be cleaner but hey...
+            */
 
             cumprobs = dvec(T);
-
-
 
             // LETs see what-a-gwan- ooon --- the problem was the sumbeta calc above !!!
             printf("alpha[0]=%f alpha[1]=%f ... alpha[numT-1]=%f \\n", alpha[0], alpha[1], alpha[numT-1] );
             printf("beta[0]=%f beta[1]=%f ... beta[numTerms-1]=%f \\n", beta[0], beta[1], beta[numTerms-1] );
-
             printf("# of iterations = iter = %d\\n", iter);
 
 
             for(itr=0; itr<iter; itr++) {
 
-                //printf("itr = %d\\n", itr);
-                //fprintf(buf, "itr = %d\\n", itr);
-
                 for(i=0; i<N; i++) {
 
                     w_id        = (int) w[i];
                     doc_id      = (int) d[i];
-
 
                     // decrement all counts
                     oldt = (int) z[i];
@@ -569,106 +472,57 @@ class LdaModel(interfaces.LdaModelABC):
                     // fill up   cumprobs = CMF(  P(z| ...)  )
                     sumprz = 0.0;
                     for( t=0; t<numT; t++){
-                            /* in case of debug
-                            printf("doc_id: %d \\n", doc_id);
-                            printf("w_id: %d \\n", w_id);
-                            printf("t: %d \\n", t);
-                            printf("wp[w_id][t] = %d \\n", wp[w_id*T+t]);
-                            printf("dp[doc_id][t] = %d \\n", wp[doc_id*T+t]);
-                            printf("ztot[t] = %d \\n", ztot[t] );
-                            printf("sumbeta: %f \\n", sumbeta);
-                            */
                         prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(dp[doc_id*T+t] + alpha[t]);
                         sumprz  += prz;
                         cumprobs[t] = sumprz;
-
-                        //if (isnan(prz) ) {
-                        //    printf("Current prob: %f \\n", prz);
-                        //    printf("-----------------------------------------------------\\n");
-                        //}
-
                     }
-
-                                                            /* Old sampling code
-
-                                                            //sample from probs
-                                                            U = sumprz * drand48();
-                                                            //    printf("max sample val: %f \\n", sumprz);
-                                                            //    printf("sample: %f \\n", U);
-                                                            currprob = probs[0];
-                                                            newt = 0;
-                                                            while( U > currprob){
-                                                                newt ++;
-                                                                currprob += probs[newt];
-                                                            }
-
-                                                            */
-
 
                     //sample from probs
                     U = sumprz * drand48();
 
-
                     // Binary search in cumprobs
                     // find index newt s.t. cumpobs[newt] => U
                     // and cumprobs[newt-1] < U  OR  newt==0
+                    newt = 0;
+                    bsmin = 0;
+                    bsmax = numT-1;
 
-                       newt = 0;
-                       bsmin = 0;
-                       bsmax = numT-1;
-
-                       for(;;)
+                    for(;;)
+                    {
+                       bsmid =  (bsmin + bsmax) /2;
+                       currprob = cumprobs[bsmid];
+                       if (currprob  < U)
+                           bsmin = bsmid  + 1;
+                       else if (  bsmid==0   &&    currprob >= U  )
                        {
-                           bsmid =  (bsmin + bsmax) /2;
-                           currprob = cumprobs[bsmid];
-                           if (currprob  < U)
-                               bsmin = bsmid  + 1;
-                           else if (  bsmid==0   &&    currprob >= U  )
-                           {
-                             newt = 0;
-                             break;
-                           }
-                           else if (  cumprobs[bsmid-1]<U   &&  currprob >= U  )
-                           {
-                             newt = bsmid;
-                             break;
-                           }
-                           else if (currprob >  U)
-                               bsmax = bsmid - 1;
-                           else
-                           {
-                               printf("Shouldn't be here bro: %d \\n", bsmid);
-                               break;
-                           }
+                         newt = 0;
+                         break;
                        }
+                       else if (  cumprobs[bsmid-1]<U   &&  currprob >= U  )
+                       {
+                         newt = bsmid;
+                         break;
+                       }
+                       else if (currprob >  U)
+                           bsmax = bsmid - 1;
+                       else
+                       {
+                           printf("Shouldn't be here bro: %d \\n", bsmid);
+                           break;
+                       }
+                    }
 
-
-
-
-                    //printf("newt: %d \\n", newt);
                     // increment back up  all counts
                     z[i] = newt;
                     dp[doc_id*T + newt]++;
                     wp[  w_id*T + newt]++;
                     ztot[newt]++;
 
-                    /*
-
-                    for( t=0; t<numT; t++){
-                        debug2[t]=cumprobs[t];
-                    }
-
-                    */
-
                 }
-           }
-
+            }
 
             free(cumprobs);
-
-
             //////////////////////////////////////////////////////////////  END ///
-
         """
 
         out = sp.weave.inline( code,
@@ -691,25 +545,19 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
-
     def deallocate_arrays(self):
-        """
-        free up some memory
-
-        note: there is a sense in keeping sparse versions
-              of the model variables that we have learned:
+        """free up some memory
+          note: there is a sense in keeping sparse versions
+                of the model variables that we have learned:
                 self.wp   ==> self.Nwt  ==> self.phi
                 self.dp   ==> self.Ndt  ==> self.theta
         """
-
         del self.d
         del self.w
         del self.z
         del self.ztot
-
         del self.wp
         del self.dp
-
 
 
     def conv_dp_to_theta(self):
@@ -717,21 +565,16 @@ class LdaModel(interfaces.LdaModelABC):
         converts the topic counts per document in self.dp
         to a probability distibution
           p(t|d)
-        rows are documents
-        columns are topic proportions
+        rows are documents columns are topic proportions
         """
         numDocs,numT = self.dp.shape
         input = np.array( self.dp, dtype=np.float )
-
-
         #                    N_td   + alpha[t]
         #  p(t|d)     =  - ----------------------
         #                 sum_t N_td   + sumalpha
-
         sumalpha=np.sum(self.alpha)
         totWinDocs = np.sum(input,1)
         denom= totWinDocs + sumalpha
-
         normalizer = 1.0/denom
         for t in np.arange(0,numT):
             input[:,t]=(input[:,t]+self.alpha[t])*normalizer
@@ -740,39 +583,32 @@ class LdaModel(interfaces.LdaModelABC):
         # (input + np.ones( (numT,numT))*alpha) * normalizer ... ;)
 
 
-
     def conv_wp_to_phi(self):
         """
         convers number of words in topic counts
         to a probability distibution
           p(w|t)
-        rows are topics
-        columns are word likelyhoods
+        rows are topics columns are word likelyhoods
         """
-
         numTerms,numT = self.wp.shape
         input = np.array( self.wp, dtype=np.float )
-
         #                    N_wt   + beta[w]
         #  p(w|t)     =  - ----------------------
         #                 sum_w N_wt   + sumbeta
         sumbeta = np.sum(self.beta)
         ztot = np.sum(input,0)      # total number of words in corpus for topic t
         denom = ztot + sumbeta
-
         betarows = np.resize( self.beta, (numT,len(self.beta)) )  # numpy makes multiple copies of array on resize
         betacols = betarows.transpose()
-
         withbeta = input + betacols
-
         prob_w_given_t = np.dot(withbeta, np.diag(1.0/denom) )
         self.phi = prob_w_given_t.transpose()
 
 
     def wpdt_to_probs(self):
         """
-                self.wp   ==> self.Nwt  ==> self.phi
-                self.dp   ==> self.Ndt  ==> self.theta
+            self.wp   ==> self.Nwt  ==> self.phi
+            self.dp   ==> self.Ndt  ==> self.theta
         """
         self.conv_dp_to_theta()
         self.conv_wp_to_phi()
@@ -784,10 +620,8 @@ class LdaModel(interfaces.LdaModelABC):
         """
         Compute the log likelyhood of the corpus
         under current `phi` and `theta` distributions
-
         assumes that accessing the corpus is expensive
         so goes though the lists `self.w` and `self.d` instead
-
         if corpus is in RAM also, then more efficient to use term_counts
         """
         if hasattr(self, 'loglike_val') and not recompute:
@@ -809,17 +643,12 @@ class LdaModel(interfaces.LdaModelABC):
             return self.perplexity_val
                 
 
-
-
-
     def seeded_initialize(self, seed_z, expand_factors):
         """
         Given a `z` vector from a previous LDA run, with topics assignments
         varying between 0 and seed_numT-1, we set the values of `self.z`
         to be a random "subtopics" of the original.
-
         The ratio numT/seed_numT is called the expand_factor.
-
         The ranzom choices of `z` are also accounted for in `ztot`, `wp` and `dp`.
         """
 
@@ -844,11 +673,9 @@ class LdaModel(interfaces.LdaModelABC):
                 expand_factors[i]= unif_expand
             expand_factors[seed_numT-1] = self.numT - np.sum(expand_factors)
 
-
         # do some checking
         assert np.sum(expand_factors) == self.numT, "expand_factors must sum up to total of topics in new model"
         assert len(expand_factors) == seed_numT, "must specify exactly one expand_factor per seed topic"
-
 
         # go through topic assignment list and assign to one of expand_factors subtopics
         shift_right_one = np.concatenate( (np.zeros(1), expand_factors) )
@@ -859,13 +686,9 @@ class LdaModel(interfaces.LdaModelABC):
 
         # update the counts dp, wp and ztot
         self.set_z_and_compute_counts_in_C( self.z )
-
         assert sum(self.ztot) == ntot
 
         logger.info("Seeded assignment of self.z done")
-
-
-
 
 
     def load_from_rundir(self, rundir):
@@ -905,8 +728,6 @@ class LdaModel(interfaces.LdaModelABC):
         #        read it from output.json
         #
 
-
-
         # compute the counts
         # self.allocate_arrays()
         # self.set_z_and_compute_counts_in_C( self.z )
@@ -919,12 +740,10 @@ class LdaModel(interfaces.LdaModelABC):
         assert  all( np.sum(self.dp,0) ==  np.sum(self.wp,0) )
         self.ztot = np.sum(self.dp,0)
 
-
         # set  params
         self.numDocs, self.numT = self.dp.shape
         self.numTerms = self.wp.shape[0]
         self.totalNwords = len(self.z)
-
 
         # setup alpha and beta
         if not hasattr(self.alpha, "__iter__"):      # if \alpha is not list like
@@ -935,41 +754,25 @@ class LdaModel(interfaces.LdaModelABC):
         # compute the probs
         self.wpdt_to_probs()
 
-
         logger.info("Loaded LDA model. Need to set CORPUS and VOCAB manually.")
 
 
 
 
 
-
-
-
     ##### INFERENCE ################################################################################
-
-
-
-
-
-
-
-
-
     def inference(self, qcorpus, iter=100, seed=3):
         """ Returns the inferred theta matrix for the query corpus """
-
         #        if not hasattr(self, 'iter'):
         self.iter=iter
         #        if not hasattr(self, 'seed'):
         self.seed=seed
-
         self.qcorpus = qcorpus
-        self.numQDocs = len(qcorpus)               # how do i make this lazy?
-                                            # assume Corpus object is smart
-                                            # and has cached its length ...
+        self.numQDocs = len(qcorpus)            # how do i make this lazy?
+                                                # assume Corpus object is smart
+                                                # and has cached its length ...
         self.qtheta = None
         self.qz = None
-
 
         # subfunctions
         self.allocate_qarrays()
@@ -982,8 +785,7 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Finished inference.")
         return self.qtheta
         
-        
-        
+
     def countQN(self):
         """ Count the total number of words in query corpus        """
         if hasattr(self, "totalQNwords") and self.totalQNwords != None:
@@ -1039,28 +841,24 @@ class LdaModel(interfaces.LdaModelABC):
         logger.info("Done loading query corpus")
 
 
-
     def qrandom_initialize(self):
         """
         Goes through `self.qz` and assigns random choice of topic 
         for each of the tokens according to self.phi \equiv self.wp
 
         """
-
         ntotq = len(self.qz)  # = QN  = totalQNwords
-        
         # pick list of random topics
         randomqz  = np.random.randint(0, high=self.numT, size=ntotq)
         self.set_qz_and_compute_counts_in_C( randomqz )
         logger.info("Random assignment of self.qz done")
 
+
     def set_qz_and_compute_counts_in_C(self, z_new):
         """
         An appropirately sized topic assignment vector `z_new`,
         we will be used to replace the current `self.qz`.
-        
-        The change in `z` is also accounted for by recomputing 
-        `qdp`.
+        The change in `z` is also accounted for by recomputing `qdp`.
         """
         logger.info("Replacing topic indicator variable self.qz with z_new")
         qntot = len(self.qz)      # = N  = totalNwords
@@ -1126,7 +924,6 @@ class LdaModel(interfaces.LdaModelABC):
         #ztot = self.ztot
         phi = self.phi
 
-
         # just to be sure let's intify the Gibbs algo. params
         if seed:
             seed = int(seed)
@@ -1136,32 +933,25 @@ class LdaModel(interfaces.LdaModelABC):
             iter = int(iter)
         else:
             iter = int(self.iter)
-
         # bonus
         debug = np.zeros( 100 , dtype=np.int32)
         debug2 = np.zeros( 100 , dtype=np.float64)
-
-
         buf = sys.stdout        # to try to get output of printf scrolling
 
         logger.info("Starting scipy.weave Gibbs sampler")
 
         code = """  // query gibbs_sample C weave code  ///////////////////// START /////
-
             int i;      // counter within z,d,w
             int itr;    // Gibbs iteration counter
-
             int t, k, oldt, newt;             // topic indices
             int w_id, term;              // index over words --
             int doc_id;                  // index over documents
-
             int T;
 
             // double *probs  ---> converted to cumprobs
             double *cumprobs;                       // new
             double prz, sumprz, currprob, U ;
             int bsmin, bsmax, bsmid;                // for binary search
-
             double sumalpha, sumbeta;
 
             // seed the random num generator
@@ -1184,8 +974,6 @@ class LdaModel(interfaces.LdaModelABC):
 
             for(itr=0; itr<iter; itr++) {
 
-                //printf("itr = %d\\n", itr);
-
                 for(i=0; i<QN; i++) {
 
                     w_id        = (int) qw[i];
@@ -1203,15 +991,12 @@ class LdaModel(interfaces.LdaModelABC):
 
                         prz = (double)  PHI2(t,w_id) * (qdp[doc_id*T+t] + alpha[t]);
 
-
                         // prz = (double)(wp[w_id*T+t] + beta[w_id])/(ztot[t]+sumbeta)*(qdp[doc_id*T+t] + alpha[t]);
                         sumprz  += prz;
                         cumprobs[t] = sumprz;
                     }
-
                     //sample from probs
                     U = sumprz * drand48();
-
 
                     // Binary search in cumprobs
                     newt = 0;
@@ -1246,14 +1031,8 @@ class LdaModel(interfaces.LdaModelABC):
                     //qdp[doc_id*T + newt]++;
                     QDP2(doc_id,newt)=QDP2(doc_id,newt)+1;
                 }
-           }
-
-
+            }
             free(cumprobs);
-
-
-            //////////////////////////////////////////////////////////////  END ///
-
         """
 
         out = sp.weave.inline( code,
@@ -1276,7 +1055,6 @@ class LdaModel(interfaces.LdaModelABC):
         return out
 
 
-
     def conv_qdp_to_qtheta(self):
         """
         converts the query topic counts per document in self.qdp
@@ -1286,11 +1064,9 @@ class LdaModel(interfaces.LdaModelABC):
         """
         numQDocs,numT = self.qdp.shape
         input = np.array( self.qdp, dtype=np.float )
-
         #                    N_td   + alpha[t]
         #  p(t|d)     =  - ----------------------
         #                 sum_t N_td   + sumalpha
-
         sumalpha=np.sum(self.alpha)
         totWinDocs = np.sum(input,1)
         denom= totWinDocs + sumalpha
@@ -1305,10 +1081,8 @@ class LdaModel(interfaces.LdaModelABC):
         """
         Compute the log likelyhood of the corpus
         under current `phi` and `theta` distributions
-
         assumes that accessing the corpus is expensive
         so goes though the lists `self.w` and `self.d` instead
-
         if corpus is in RAM also, then more efficient to use term_counts
         """
         if hasattr(self, 'qloglike_val') and not recompute:
@@ -1330,7 +1104,6 @@ class LdaModel(interfaces.LdaModelABC):
             return self.qperplexity_val
                 
                 
-                
 
 
 
@@ -1339,18 +1112,12 @@ class LdaModel(interfaces.LdaModelABC):
 
 
     ##### UTILITIES ##############################################################
-
-
-
-
-
     def save( self, rundir, hyperparams=False, probs=True, counts=False, z=False):
         """
             Save the model to numpy arrays in `rundir`.
             Dir is created if it doesn't exist.
             File are overwritten without warning.
         """
-
         # FILENAMES for storing run output
         RUN_FILENAMESS = {  "dp":"Ndt.npy",
                     "wp":"Nwt.npy",
@@ -1363,12 +1130,9 @@ class LdaModel(interfaces.LdaModelABC):
                     "beta":"beta.npy"       # prior on p(w|t) distr.
                                             # same as output.json["beta"][0]  if constant
                  }
-
         # SAVE TO...
         if not os.path.exists( rundir ):
             os.mkdir( rundir)
-
-        # 
 
         # save word counts and topic assignment counts (these are sparse)
         if counts:    # FALSE by default
@@ -1404,3 +1168,13 @@ class LdaModel(interfaces.LdaModelABC):
 
 
 
+
+
+class IncompleteInputError(Exception):
+    """
+    The user didn't supply a corpus or numT
+    """
+    def __init__(self, msg):
+        self.msg = msg
+    def __str__(self):
+        return repr(self.msg)
